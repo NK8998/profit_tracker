@@ -1,3 +1,4 @@
+# Core libraries
 import sqlite3
 import datetime
 from tkinter import *
@@ -6,7 +7,6 @@ import shutil
 import hashlib
 import customtkinter as ctk
 from customtkinter import *
-from PIL import Image
 import tkinter as tk
 from tkinter import PhotoImage
 from PIL import Image, ImageTk
@@ -16,15 +16,335 @@ from tkinter import Toplevel, Label, Entry, Button, messagebox, StringVar, ttk
 from customtkinter import CTk, CTkLabel, CTkEntry, CTkButton
 from tkinter import PhotoImage
 
+
+# helpers
+from helpers.image_widget import add_image_widget
+
+# helpers
+
 import time
 
-def screen_renderer(screen):
-    # implement a renderer to prevent multiple windows from being opened.
-    pass
+
+
+
+
+
 
 
 
 def main_screen(loggedInUserID):
+
+    screen_manager = ScreenManager()
+
+    window_obj = CTk()
+    window_obj.title("Profit Tracker")
+    window_obj.iconbitmap("./images/main/profit.ico")
+    window_obj.wm_geometry("1280x720")
+    window_obj.wm_minsize(1280, 720)
+
+    mainMenuBar = Menu(window_obj, tearoff=0)
+    window_obj.config(menu=mainMenuBar)
+    optionsMenu = Menu(mainMenuBar)
+    mainMenuBar.add_cascade(label="options", menu=optionsMenu)
+    mainMenuBar.add_cascade(label=f"logged in as: {User.show_user(loggedInUserID)}")
+    optionsMenu.add_command(label="About us")
+    optionsMenu.add_command(label="Exit")
+
+    
+    # Configure columns for the layout
+    window_obj.grid_columnconfigure(0, weight=0, minsize=300)  # Fixed-width column
+    window_obj.grid_columnconfigure(1, weight=1)  # Expanding column
+
+    # Configure rows to expand vertically
+    window_obj.grid_rowconfigure(0, weight=1)
+
+    # Create the first column with fixed width
+    main_column1 = tk.Frame(window_obj, bg="white", width=300)
+    main_column1.grid(row=0, column=0, sticky='nsew')
+
+    main_column1.columnconfigure(index=0, weight=1)
+
+    # Create the second column, which will take up the remaining space
+    main_column2 = tk.Frame(window_obj, bg="#efefef")
+    main_column2.grid(row=0, column=1, sticky='nsew')
+
+    main_column2.columnconfigure(index=0, weight=1)
+    main_column2.rowconfigure(index=0, weight=1)
+
+
+    def reinitialize_main_column2(target_screen):
+        if screen_manager.set_current_screen(target_screen)  == True:
+            print('I ran')
+            for widget in main_column2.winfo_children():
+                widget.destroy()
+            return True
+        return False
+
+
+    def show_dashboard():
+        should_refresh = reinitialize_main_column2('dashboard')
+        if not should_refresh:
+            return
+        # main_column 1 children
+        user_icon = add_image_widget(main_column1, "images/main/man-user-circle-icon.png", height=110, width=110)
+        user_icon.grid(row=0, column=0, padx=10,pady=(40, 10), sticky='nsew')
+
+        user = User.show_user_as_dict(loggedInUserID)[0]
+        CTkLabel(
+            main_column1, 
+            text=f"{user['fname']} {user['lname']}", 
+            font=("sans-serif", 19, 'bold'),
+            text_color="#272727",
+        ).grid(row=1, column=0, padx=10, pady=(10, 15), sticky="nsew")
+
+        dashboard_btn = CTkButton(
+            master=main_column1,
+            text=" Dashboard",
+            command=show_dashboard,
+            font=("sans-serif", 14, "bold"),
+            corner_radius=6,
+            hover_color="#bde2ff",
+            bg_color='white',
+            fg_color="white",
+            text_color='grey',
+            border_width=0,
+            width=200,
+            height=40,
+            anchor='w',
+            image=CTkImage(
+                dark_image=Image.open("./images/main/dashboard.png"),
+                light_image=Image.open("./images/main/dashboard.png"),
+            ),
+        )
+        dashboard_btn.grid(
+            row=2,
+            column=0,
+            pady=(10, 10),
+            padx=10
+        )  # Adjust the second value for more or less margin
+
+        # entails show users create users
+        users_btn = CTkButton(
+            master=main_column1,
+            text=" Users",
+            command=show_user,
+            font=("sans-serif", 14, "bold"),
+            corner_radius=6,
+            hover_color="#bde2ff",
+            bg_color='white',
+            fg_color="white",
+            text_color='grey',
+            border_width=0,
+            width=200,
+            height=40,
+            anchor='w',
+            image=CTkImage(
+                dark_image=Image.open("./images/main/all_users.png"),
+                light_image=Image.open("./images/main/all_users.png"),
+            ),
+        )
+        users_btn.grid(
+            row=3,
+            column=0,
+            pady=(10, 10),
+            padx=10
+        )  # Adjust the second value for more or less margin
+
+
+        # entails add products and show products
+        products_btn = CTkButton(
+            master=main_column1,
+            text=" Products",
+            command=show_product,
+            font=("sans-serif", 14, "bold"),
+            corner_radius=6,
+            hover_color="#bde2ff",
+            bg_color='white',
+            fg_color="white",
+            text_color='grey',
+            border_width=0,
+            width=200,
+            height=40,
+            anchor='w',
+            image=CTkImage(
+                dark_image=Image.open("./images/main/show_products.png"),
+                light_image=Image.open("./images/main/show_products.png"),
+            ),
+        )
+        products_btn.grid(
+            row=4,
+            column=0,
+            pady=(10, 10),
+            padx=10
+        ) 
+
+        transaction_btn = CTkButton(
+            master=main_column1,
+            text=" Transactions",
+            command=show_transaction,
+            font=("sans-serif", 14, "bold"),
+            corner_radius=6,
+            hover_color="#bde2ff",
+            bg_color='white',
+            fg_color="white",
+            text_color='grey',
+            border_width=0,
+            width=200,
+            height=40,
+            anchor='w',
+            image=CTkImage(
+                dark_image=Image.open("./images/main/transactions.png"),
+                light_image=Image.open("./images/main/transactions.png"),
+            ),
+        )
+        transaction_btn.grid(
+            row=5,
+            column=0,
+            pady=(10, 10),
+            padx=10
+        ) 
+        logout_btn = CTkButton(
+            master=main_column1,
+            text=" Exit",
+            command=show_transaction,
+            font=("sans-serif", 14, "bold"),
+            corner_radius=6,
+            hover_color="#bde2ff",
+            bg_color='white',
+            fg_color="white",
+            text_color='grey',
+            border_width=0,
+            width=200,
+            height=40,
+            anchor='w',
+            image=CTkImage(
+                dark_image=Image.open("./images/main/logout.png"),
+                light_image=Image.open("./images/main/logout.png"),
+            ),
+        )
+        logout_btn.grid(
+            row=6,
+            column=0,
+            pady=(10, 10),
+            padx=10
+        ) 
+         # main_column 1 children
+        #  main_column 2 children
+
+        # Setup scrollable frame
+
+        main_page_frame = CTkScrollableFrame(master=main_column2, fg_color="#efefef", corner_radius=0)
+        main_page_frame.grid(row=0, column=0, sticky=NSEW)
+
+        main_page_frame.columnconfigure(index=0, weight=1)
+
+        CTkLabel(
+            main_page_frame, 
+            text="Dashboard", 
+            font=("sans-serif", 16, 'bold'),
+            text_color="#1b89ff",
+        ).grid(row=0, column=0, padx=10, pady=(10, 15), sticky="W")
+
+        chart_row_frame = tk.Frame(main_page_frame, bg='grey', height=350)
+        chart_row_frame.grid(row=1, column=0, padx=10, pady=20, sticky=NSEW)
+
+        chart_row_frame.grid_propagate(False)
+
+        stats_row_frame = tk.Frame(main_page_frame, bg='white', height= 350)
+        stats_row_frame.grid(row=2, column=0, padx=10, pady=20, sticky=NSEW)   
+
+        stats_row_frame.rowconfigure(0, weight=1)
+        stats_row_frame.grid_propagate(False)
+
+
+        def calculate_profit():
+            transactions = Transaction.get_transcations_as_Dict()
+            products = {product['prodID']: product['price'] for product in Product.get_products_as_Dict()} 
+            
+            
+            transaction_info = [
+                {'quantity': transaction['quantity'], 'price': products[transaction['prodID']]}
+                for transaction in transactions
+                if transaction['prodID'] in products 
+            ]
+            
+            total_profit = sum(info['quantity'] * info['price'] for info in transaction_info)
+
+            return total_profit
+
+        
+        total_profit = calculate_profit()
+
+        box_1 = tk.Frame(stats_row_frame, bg='#0aadff', width=350, height=350)
+        box_1.grid(row=0, column=0)
+
+        box_1.grid_propagate(False)
+        box_1.columnconfigure(0, weight=1)
+
+
+        CTkLabel(
+            master=box_1,
+            text="Profit for the last month:",
+            font=("sans-serif", 16, 'bold'), 
+            anchor='nw',
+            text_color="white"
+ 
+        ).grid(row=0, column=0, pady=(0, 40), sticky='w')
+
+        box_1_image = add_image_widget(box_1, './images/main/profits.png', width=60, height=60, background='#0aadff')
+        box_1_image.grid(row=0, column=1, sticky='ne')
+
+        CTkLabel(
+            master=box_1,
+            text=f"Ksh. {total_profit}",
+            font=("sans-serif", 22, 'bold'), 
+            anchor='center',
+            text_color="black"
+        ).grid(row=1, column=0, pady=(40, 40))
+        
+            
+        
+        box_2 = tk.Frame(stats_row_frame, bg='#0aadff', width=350, height=350)
+        box_2.grid(row=0, column=1, padx=(50, 0), sticky='e')
+
+        box_2.grid_propagate(False)
+        box_2.columnconfigure(0, weight=1)
+
+        total_users = User.get_total_users() - 1
+
+        CTkLabel(
+            master=box_2,
+            text="Total users:",
+            font=("sans-serif", 16, 'bold'), 
+            anchor='w',
+        ).grid(row=0, column=0, pady=(0, 40), sticky='w')
+
+        box_2_image = add_image_widget(box_2, './images/main/user-group.png', width=60, height=60, background='#0aadff')
+        box_2_image.grid(row=0, column=1, sticky='ne')
+
+        CTkLabel(
+            master=box_2,
+            text=f"{total_users}",
+            font=("sans-serif", 22, 'bold'), 
+            anchor='center',
+            text_color="black"
+        ).grid(row=1, column=0, pady=(40, 40))
+
+        
+
+
+
+
+
+        
+        #  main_column 2 childrens
+
+
+
+
+
+        window_obj.mainloop()
+
     def desturi(title, message):  # hii ina act ka message box
         onTop = CTk()
         onTop.lift()
@@ -176,6 +496,9 @@ def main_screen(loggedInUserID):
         temp_window.wm_transient()
 
     def show_user():
+        should_refresh = reinitialize_main_column2('users')
+        if not should_refresh:
+            return
         for index, val in enumerate(User.show_user()):
             # print(val[5])
             pass
@@ -352,13 +675,10 @@ def main_screen(loggedInUserID):
 
             pop_up.mainloop()
 
-        temp_window = CTkToplevel(window_obj)
-        temp_window.title("Users")
-        temp_window.iconbitmap("./images/main/profit.ico")
-        temp_window.attributes("-topmost", True)
         if "UI" == "UI":
+
             table = ttk.Treeview(
-                temp_window,
+                main_column2,
                 columns=(
                     "ID",
                     "Employee ID",
@@ -370,48 +690,43 @@ def main_screen(loggedInUserID):
                 show="headings",
             )
 
-        headings = [
-            "ID",
-            "Employee ID",
-            "First Name",
-            "Last Name",
-            "Salary",
-            "National ID",
-        ]
-        for heading in headings:
-            table.heading(heading, text=heading)
-            table.column(heading, anchor="center")
-            table.tag_configure("oddrow", background="#3A3A3A")
-            table.tag_configure("evenrow", background="#2E2E2E")
+            headings = [
+                "ID",
+                "Employee ID",
+                "First Name",
+                "Last Name",
+                "Salary",
+                "National ID",
+            ]
+            for heading in headings:
+                table.heading(heading, text=heading)
+                table.column(heading, anchor="center")
+                table.tag_configure("oddrow", background="white")
+                table.tag_configure("evenrow", background="#e7e7e7")
 
-        table.pack(fill="both", expand=True, padx=200, pady=200)
+            table.pack(fill="both", expand=True, padx=20, pady=20)
 
-        for index, val in enumerate(User.show_user()):
-            tag = "evenrow" if index % 2 == 0 else "oddrow"
-            table.insert(parent="", index=index, values=val)
-        style = ttk.Style()
-        style.theme_use("clam")
-        style.configure(
-            "Treeview",
-            background="#2E2E2E",
-            foreground="white",
-            rowheight=25,
-            fieldbackground="#2E2E2E",
-        )
-        style.configure(
-            "Treeview.Heading",
-            background="#3A3A3A",
-            foreground="white",
-        )
-        style.map(
-            "Treeview",
-            background=[("selected", "#4A4A4A")],
-            foreground=[("selected", "white")],
-        )
-        table.bind("<Double-Button>", edit_user)
-        deletebtn = CTkButton(temp_window, text="delete", command=delete_user)
-        deletebtn.pack()
-        temp_window.mainloop()
+            for index, val in enumerate(User.show_user()):
+                tag = "evenrow" if index % 2 == 0 else "oddrow"
+                table.insert(parent="", index=index, values=val, tags=tag)
+
+            style = ttk.Style()
+            style.configure(
+                "Treeview",
+                    font=("Helvetica", 10),
+                    rowheight=30,
+                    background="#f8f9fa",  # Light grey background
+                    foreground="black",
+            )
+            style.configure("Treeview.Heading", font=("Helvetica", 12, "bold"))
+            style.map(
+                "Treeview",
+                background=[("selected", "#4A4A4A")],
+                foreground=[("selected", "white")],
+            )
+            table.bind("<Double-Button>", edit_user)
+            deletebtn = CTkButton(main_column2, text="delete", command=delete_user)
+            deletebtn.pack()
 
     def create_product():
         # select file fix
@@ -528,12 +843,12 @@ def main_screen(loggedInUserID):
             )
 
     def show_product():
-        temp_window = CTkToplevel()
-        temp_window.title("Products")
-        temp_window.attributes("-topmost", True)
+        should_refresh = reinitialize_main_column2('products')
+        if not should_refresh:
+            return
 
         table = ttk.Treeview(
-            temp_window,
+            main_column2,
             columns=(
                 "ID",
                 "Product ID",
@@ -558,8 +873,8 @@ def main_screen(loggedInUserID):
         for heading in headings:
             table.heading(heading, text=heading)
             table.column(heading, anchor="center")
-            table.tag_configure("oddrow", background="#3A3A3A")
-            table.tag_configure("evenrow", background="#2E2E2E")
+            table.tag_configure("oddrow", background="white")
+            table.tag_configure("evenrow", background="#e7e7e7")
 
         table.pack(fill="both", expand=True, padx=20, pady=20)
 
@@ -571,19 +886,14 @@ def main_screen(loggedInUserID):
             )  # <-- Modify this line
 
         style = ttk.Style()
-        style.theme_use("clam")
         style.configure(
             "Treeview",
-            background="#2E2E2E",
-            foreground="white",
-            rowheight=25,
-            fieldbackground="#2E2E2E",
+                font=("Helvetica", 10),
+                rowheight=30,
+                background="#f8f9fa",  # Light grey background
+                foreground="black",
         )
-        style.configure(
-            "Treeview.Heading",
-            background="#3A3A3A",
-            foreground="white",
-        )
+        style.configure("Treeview.Heading", font=("Helvetica", 12, "bold"))
         style.map(
             "Treeview",
             background=[("selected", "#4A4A4A")],
@@ -735,11 +1045,9 @@ def main_screen(loggedInUserID):
 
         table.bind("<Double-Button>", item_edit)
         deletebtn = CTkButton(
-            temp_window, text="Delete Selected Product", command=delete_product
+            main_column2, text="Delete Selected Product", command=delete_product
         )
         deletebtn.pack(pady=10)
-
-        temp_window.mainloop()
 
     def create_transaction():
         def db_query():
@@ -811,6 +1119,10 @@ def main_screen(loggedInUserID):
         temp_window.wm_transient()
 
     def show_transaction():
+
+        should_refresh = reinitialize_main_column2('transactions')
+        if not should_refresh:
+            return
 
         def item_edit(event):
             selected_item = table.selection()[0]
@@ -941,13 +1253,10 @@ def main_screen(loggedInUserID):
 
             pop_up.mainloop()
 
-        temp_window = CTkToplevel()
-        temp_window.title("Transaction Records")
-        temp_window.attributes("-topmost", True)
 
         # Define the Treeview for displaying transaction records
         table = ttk.Treeview(
-            temp_window,
+            main_column2,
             columns=(
                 "Receipt ID",
                 "Employee ID",
@@ -968,11 +1277,12 @@ def main_screen(loggedInUserID):
             "Price",
             "Time",
         ]
+       
         for heading in headings:
             table.heading(heading, text=heading)
             table.column(heading, anchor="center")
-            table.tag_configure("oddrow", background="#3A3A3A")
-            table.tag_configure("evenrow", background="#2E2E2E")
+            table.tag_configure("oddrow", background="white")
+            table.tag_configure("evenrow", background="#e7e7e7")
 
         table.pack(fill="both", expand=True, padx=20, pady=20)
 
@@ -981,21 +1291,15 @@ def main_screen(loggedInUserID):
             tag = "evenrow" if index % 2 == 0 else "oddrow"
             table.insert(parent="", index=index, values=val, tags=(tag,))
 
-        # Style configuration
         style = ttk.Style()
-        style.theme_use("clam")
         style.configure(
             "Treeview",
-            background="#2E2E2E",
-            foreground="white",
-            rowheight=25,
-            fieldbackground="#2E2E2E",
+                font=("Helvetica", 10),
+                rowheight=30,
+                background="#f8f9fa",  # Light grey background
+                foreground="black",
         )
-        style.configure(
-            "Treeview.Heading",
-            background="#3A3A3A",
-            foreground="white",
-        )
+        style.configure("Treeview.Heading", font=("Helvetica", 12, "bold"))
         style.map(
             "Treeview",
             background=[("selected", "#4A4A4A")],
@@ -1003,237 +1307,17 @@ def main_screen(loggedInUserID):
         )
         table.bind("<Double-Button>", item_edit)
 
-        CTkButton(temp_window, text="Delete", command=delete_transaction).pack(pady=10)
-
-        temp_window.mainloop()
-
-    window_obj = CTk()
-    window_obj.title("Profit Tracker")
-    window_obj.iconbitmap("./images/main/profit.ico")
-    set_default_color_theme("blue")
-    window_obj.wm_geometry("1280x720")
-    window_obj.wm_minsize(1280, 720)
-
-    mainMenuBar = Menu(window_obj, tearoff=0)
-    window_obj.config(menu=mainMenuBar)
-    optionsMenu = Menu(mainMenuBar)
-    mainMenuBar.add_cascade(label="options", menu=optionsMenu)
-    mainMenuBar.add_cascade(label=f"logged in as: {User.show_user(loggedInUserID)}")
-    optionsMenu.add_command(label="About us")
-    optionsMenu.add_command(label="Exit")
-
-    if "UI" == "UI":
-        # row1 
-        row_1 = tk.Frame(window_obj, bg="white", height=60)
-        row_1.pack(side='top', fill='x')
-
-        text_row = tk.Frame(row_1, bg='white', height=40)
-        text_row.grid(row=0, column=0, pady=10, padx=10)
-
-        CTkLabel(
-            text_row, 
-            text="All your transactions in one place", 
-            font=("sans-serif", 18, 'bold'),
-            text_color="black",
-        ).grid(row=0, column=0, padx=10, pady=0, sticky="w")
+        CTkButton(main_column2, text="Delete", command=delete_transaction).pack(pady=10)
 
 
-        # Border frame for the image
-        border_frame = tk.Frame(text_row, bg="black", width=2)  # Border width and color
-        border_frame.grid(row=0, column=1, sticky="nsw", padx=5)
-
-        CTkLabel(
-            text_row,
-            image=CTkImage(dark_image=Image.open("images/main/top_bar/transaction.png")),
-            text=''
-        ).grid(row=0, column=2, padx=10)
-
-
-        row_2 = tk.Frame(window_obj, bg="white", height=80)
-        row_2.pack(side="top", fill='x', padx=20)
-
-        create_user_btn = CTkButton(
-            master=row_2,
-            text="Create user",
-            command=create_user,
-            font=("sans-serif", 14, "bold"),
-            corner_radius=6,
-            hover_color="#4158D0",
-            fg_color="#3A7FF6",
-            border_width=0,
-            image=CTkImage(
-                dark_image=Image.open("./images/main/top_bar/create_user.png"),
-                light_image=Image.open("./images/main/top_bar/create_user.png"),
-            ),
-        )
-        create_user_btn.grid(
-            row=0,
-            column=0,
-            pady=(10, 10),
-            padx=10
-        )  # Adjust the second value for more or less margin
-        show_user_btn = CTkButton(
-            master=row_2,
-            text="Show user",
-            command=show_user,
-            font=("sans-serif", 14, "bold"),
-            corner_radius=6,
-            hover_color="#4158D0",
-            fg_color="#3A7FF6",
-            border_width=0,
-            image=CTkImage(
-                dark_image=Image.open("./images/main/profit.png"),
-                light_image=Image.open("./images/main/profit.png"),
-            ),
-        )
-        show_user_btn.grid(
-            row=0,
-            column=1,
-            pady=(10, 10),
-            padx=10
-        ) 
-
-
-        create_product_btn = CTkButton(
-            master=row_2,
-            text="Create product",
-            command=create_product,
-            font=("sans-serif", 14, "bold"),
-            corner_radius=6,
-            hover_color="#4158D0",
-            fg_color="#3A7FF6",
-            border_width=0,
-            image=CTkImage(
-                dark_image=Image.open("./images/main/profit.png"),
-                light_image=Image.open("./images/main/profit.png"),
-            ),
-        )
-        create_product_btn.grid(
-            row=0,
-            column=2,
-            pady=(10, 10),
-            padx=10
-        ) 
-        show_product_btn = CTkButton(
-            master=row_2,
-            text="Show product",
-            command=show_product,
-            font=("sans-serif", 14, "bold"),
-            corner_radius=6,
-            hover_color="#4158D0",
-            fg_color="#3A7FF6",
-            border_width=0,
-            image=CTkImage(
-                dark_image=Image.open("./images/main/profit.png"),
-                light_image=Image.open("./images/main/profit.png"),
-            ),
-        )
-        show_product_btn.grid(
-            row=0,
-            column=3,
-            pady=(10, 10),
-            padx=10
-        ) 
-
-        create_transaction_btn = CTkButton(
-            master=row_2,
-            text="Create transaction",
-            command=create_transaction,
-            font=("sans-serif", 14, "bold"),
-            corner_radius=6,
-            hover_color="#4158D0",
-            fg_color="#3A7FF6",
-            border_width=0,
-            image=CTkImage(
-                dark_image=Image.open("./images/main/profit.png"),
-                light_image=Image.open("./images/main/profit.png"),
-            ),
-        )
-        create_transaction_btn.grid(
-            row=0,
-            column=4,
-            pady=(10, 10),
-            padx=10
-        ) 
-        show_transaction_btn = CTkButton(
-            master=row_2,
-            text="Show transaction",
-            command=show_transaction,
-            font=("sans-serif", 14, "bold"),
-            corner_radius=6,
-            hover_color="#4158D0",
-            fg_color="#3A7FF6",
-            border_width=0,
-            image=CTkImage(
-                dark_image=Image.open("./images/main/profit.png"),
-                light_image=Image.open("./images/main/profit.png"),
-            ),
-        )
-        show_transaction_btn.grid(
-            row=0,
-            column=5,
-            pady=(10, 10),
-            padx=10
-        ) 
-
-        row_3 = tk.Frame(window_obj, bg="white")
-        row_3.pack(side="top", fill='both', expand=True)
-
-        separator_thickness = 1
-        debounce_delay = 20  # Delay in milliseconds
-
-        labels_arr = []
-
-        def generate_row(arr, type):
-            new_row = tk.Frame(row_3, bg=("#3a3f52" if type == 'heading' else 'white'))
-            new_row.pack(side='top', fill='x', padx=20)
-            if type == 'tb_row':
-                underline = tk.Frame(row_3, bg="#e6e6e6", width=separator_thickness)
-                underline.pack(side='top', fill='x', padx=20)
-
-            for index, value in enumerate(arr):
-                label = CTkLabel(
-                    new_row, 
-                    text=value, 
-                    font=("sans-serif", 13, 'normal'),
-                    text_color="#f7f7f7" if type == 'heading' else 'black',
-                )
-                label.pack(side="left", fill='x') 
-                labels_arr.append(label)
-                if index < len(arr) - 1:       # Border frame for the image
-                    border_frame = tk.Frame(new_row, bg="#e6e6e6", width=separator_thickness)  # Border width and color
-                    border_frame.pack(side='left', fill='y')
-
-
-
-
-        headings = ['Receipt ID', 'Employee ID', 'Product ID', 'Quantity', 'Price', 'Discount', 'Time']
-        generate_row(headings, 'heading')
-
-        transactions = Transaction.show_transaction()
-
-        for transaction in transactions:
-            generate_row(transaction, 'tb_row')
-
-        def recalculate_width(event):
-
-            row_3.after(debounce_delay, update_label_width)
-        def update_label_width():            
-            total_width = row_3.winfo_width()
-            separator_space = (len(headings) - 1) * separator_thickness
-            new_width = (total_width - separator_space) /( len(headings) + 2)          
-            for label in labels_arr:
-                label.configure(width=new_width)
-
-        
-        window_obj.bind("<Configure>", recalculate_width)
-        
+    show_dashboard()       
         
 
-    window_obj.mainloop()
 
 
-def login_screen():  # returns user ID of the logged-in user
+def login_screen():  # returns user ID of the logged-in 
+    
+
     login_screen_obj = CTk()
     login_screen_obj.title("Login")
     login_screen_obj.iconbitmap("./images/main/profit.ico")
@@ -1425,6 +1509,22 @@ def login_screen():  # returns user ID of the logged-in user
     login_screen_obj.mainloop()
     return userId
 
+class ScreenManager:
+    def __init__(self, initial_screen=None):
+        # Initialize with an initial screen if provided
+        self._current_screen = initial_screen
+
+    def get_current_screen(self):
+        # Getter method for current_screen
+        return self._current_screen
+
+    def set_current_screen(self, target_screen):
+        # Setter method to update the screen
+        if self._current_screen != target_screen:
+            self._current_screen = target_screen
+            return True  # Indicate that a change occurred
+        return False  # No change needed
+
 
 class User:
     def __init__(
@@ -1475,10 +1575,31 @@ class User:
         conn = sqlite3.connect("./databases/users.db")
         curr = conn.cursor()
         if loggedInUserID:
-            return curr.execute("SELECT * FROM users").fetchone()[2]
+            return curr.execute(f"SELECT * FROM users WHERE empID = {loggedInUserID}").fetchone()[2]
         else:
             with conn:
                 return curr.execute("SELECT * FROM users").fetchall()
+            
+    def show_user_as_dict(loggedInUserID=None):
+        conn = sqlite3.connect("./databases/users.db")
+        conn.row_factory = sqlite3.Row
+        curr = conn.cursor()
+        with conn:
+            curr.execute(f"SELECT * FROM users WHERE empID = {loggedInUserID}")
+            rows = curr.fetchall()
+        
+            # Convert rows to a list of dictionaries
+            return [dict(row) for row in rows]
+
+            
+    def get_total_users():
+        conn = sqlite3.connect("./databases/users.db")
+        curr = conn.cursor()
+        with conn:
+            curr.execute("SELECT  COUNT(*) FROM users")
+            return curr.fetchone()[0]
+
+
 
     def update_user(id, empID, fname, lname, salary, nationalID):
         conn = sqlite3.connect("./databases/users.db")
@@ -1556,6 +1677,18 @@ class Product:
         with conn:
             curr.execute("SELECT * FROM products")
             return curr.fetchall()
+        
+    def get_products_as_Dict():
+        conn = sqlite3.connect("./databases/products.db")
+        conn.row_factory = sqlite3.Row
+        curr = conn.cursor()
+        with conn:
+            curr.execute("SELECT * FROM products")
+            rows = curr.fetchall()
+        
+            # Convert rows to a list of dictionaries
+            return [dict(row) for row in rows]
+
 
     def update_product(id, prodID, name, descripton, quantity, price, image="PATCH"):
         conn = sqlite3.connect("./databases/products.db")
@@ -1640,6 +1773,17 @@ class Transaction:
         curr = conn.cursor()
         with conn:
             return curr.execute("SELECT * FROM transactions").fetchall()
+        
+    def get_transcations_as_Dict():
+        conn = sqlite3.connect("./databases/transactions.db")
+        conn.row_factory = sqlite3.Row
+        curr = conn.cursor()
+        with conn:
+            curr.execute("SELECT * FROM transactions")
+            rows = curr.fetchall()
+        
+            # Convert rows to a list of dictionaries
+            return [dict(row) for row in rows]
 
     def update_transaction(
         id, receiptID, empID, prodID, quantity, discount, time
