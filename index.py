@@ -16,17 +16,23 @@ from tkinter import Toplevel, Label, Entry, Button, messagebox, StringVar, ttk
 from customtkinter import CTk, CTkLabel, CTkEntry, CTkButton
 from tkinter import PhotoImage
 
+# matplotlib
 import matplotlib.pyplot as plt
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+#matplotlib
 
+# nanoid
+from nanoid import generate
+# nanoid
 
 # helpers
 from helpers.image_widget import add_image_widget
+from helpers.panel_generator import generate_panel
 # helpers
 
 # classes 
-from classes.classes import User, Product, Transaction, ScreenManager, Receipt
+from classes.classes import User, Product, Transaction, ScreenManager, Receipt, PanelManager
 # classes
 
 
@@ -34,6 +40,8 @@ from classes.classes import User, Product, Transaction, ScreenManager, Receipt
 from mock_data import profits_per_week, profit_per_user
 # 
 def main_screen(loggedInUserID):
+
+    print(loggedInUserID)
 
     screen_manager = ScreenManager()
 
@@ -106,9 +114,10 @@ def main_screen(loggedInUserID):
             corner_radius=6,
             hover_color="#bde2ff",
             bg_color='white',
-            fg_color="white",
+            fg_color="#f2f2f2",
             text_color='grey',
-            border_width=0,
+            border_width=1,
+            border_color="#f2f2f2", 
             width=200,
             height=40,
             anchor='w',
@@ -133,9 +142,10 @@ def main_screen(loggedInUserID):
             corner_radius=6,
             hover_color="#bde2ff",
             bg_color='white',
-            fg_color="white",
+            fg_color="#f2f2f2",
             text_color='grey',
-            border_width=0,
+            border_width=1,
+            border_color="#f2f2f2", 
             width=200,
             height=40,
             anchor='w',
@@ -161,9 +171,10 @@ def main_screen(loggedInUserID):
             corner_radius=6,
             hover_color="#bde2ff",
             bg_color='white',
-            fg_color="white",
+            fg_color="#f2f2f2",
             text_color='grey',
-            border_width=0,
+            border_width=1,
+            border_color="#f2f2f2", 
             width=200,
             height=40,
             anchor='w',
@@ -187,9 +198,10 @@ def main_screen(loggedInUserID):
             corner_radius=6,
             hover_color="#bde2ff",
             bg_color='white',
-            fg_color="white",
+            fg_color="#f2f2f2",
             text_color='grey',
-            border_width=0,
+            border_width=1,
+            border_color="#f2f2f2", 
             width=200,
             height=40,
             anchor='w',
@@ -212,9 +224,10 @@ def main_screen(loggedInUserID):
             corner_radius=6,
             hover_color="#bde2ff",
             bg_color='white',
-            fg_color="white",
+            fg_color="#f2f2f2",
             text_color='grey',
-            border_width=0,
+            border_width=1,
+            border_color="#f2f2f2", 
             width=200,
             height=40,
             anchor='w',
@@ -243,15 +256,18 @@ def main_screen(loggedInUserID):
             main_page_frame, 
             text="Dashboard", 
             font=("sans-serif", 16, 'bold'),
-            text_color="#1b89ff",
+            text_color="grey",
         ).grid(row=0, column=0, padx=10, pady=(10, 15), sticky="W")
 
-        chart_row_frame = CTkScrollableFrame(master=main_page_frame, fg_color='#ececec', bg_color='white', height=350, orientation='horizontal')
+        chart_row_frame = CTkScrollableFrame(master=main_page_frame, fg_color='white', bg_color='white', height=350, orientation='horizontal')
         chart_row_frame.grid(row=1, column=0, padx=10, pady=20, sticky=NSEW)
 
         chart_row_frame.rowconfigure(index=0, weight=1)  
-        chart_row_frame.grid_columnconfigure(0, weight=1)  # For the bar chart
-        chart_row_frame.grid_columnconfigure(1, weight=1)  # For the pie chart      
+        # chart_row_frame.grid_columnconfigure(0, weight=1)  # For the bar chart
+        chart_row_frame.columnconfigure(0, weight=1)  # For the pie chart 
+        chart_row_frame.columnconfigure(1, weight=1)  # For the pie chart 
+        chart_row_frame.columnconfigure(2, weight=1)  # For the pie chart 
+
 
         # chart_row_frame.grid_propagate(False)
 
@@ -270,7 +286,7 @@ def main_screen(loggedInUserID):
         # Embed the figure into the Tkinter frame
         canvas = FigureCanvasTkAgg(fig, master=chart_row_frame)
         canvas.draw()
-        canvas.get_tk_widget().grid(row=0, column=0, padx=10, pady=10, sticky='nsew')
+        canvas.get_tk_widget().grid(row=0, column=0, padx=10, pady=10, sticky='nse')
 
 
         # Create the pie chart figure
@@ -282,13 +298,21 @@ def main_screen(loggedInUserID):
         # Embed the pie chart in column 1 of chart_row_frame
         canvas2 = FigureCanvasTkAgg(fig2, master=chart_row_frame)
         canvas2.draw()
-        canvas2.get_tk_widget().grid(row=0, column=1, padx=10, pady=10, sticky="nsew")
+        canvas2.get_tk_widget().grid(row=0, column=2, padx=10, pady=10, sticky="nsw")
 
+        CTkLabel(
+            master=main_page_frame,
+            text="Some Stats:",
+            font=("sans-serif", 22, 'bold'), 
+            anchor='nw',
+            text_color="grey",
+        ).grid(row=2, column=0, pady=(20, 5), padx=20, sticky='w')
 
-        stats_row_frame = tk.Frame(main_page_frame, bg='white', height= 350)
-        stats_row_frame.grid(row=2, column=0, padx=10, pady=20, sticky=NSEW)   
+        stats_row_frame = tk.Frame(main_page_frame, height= 350)
+        stats_row_frame.grid(row=3, column=0, padx=20, pady=(10, 20), sticky=NSEW)   
 
         stats_row_frame.rowconfigure(0, weight=1)
+        # stats_row_frame.columnconfigure(1, weight=1)
         stats_row_frame.grid_propagate(False)
 
 
@@ -310,7 +334,7 @@ def main_screen(loggedInUserID):
         
         total_profit = calculate_profit()
 
-        box_1 = tk.Frame(stats_row_frame, bg='#77d2ff', width=350, height=350)
+        box_1 =CTkFrame(stats_row_frame, bg_color='transparent', fg_color="#77d2ff", width=350, height=350)
         box_1.grid(row=0, column=0)
 
         box_1.grid_propagate(False)
@@ -322,12 +346,11 @@ def main_screen(loggedInUserID):
             text="Monthly Profit:",
             font=("sans-serif", 20, 'bold'), 
             anchor='nw',
-            text_color="white"
- 
-        ).grid(row=0, column=0, pady=(0, 40), sticky='w')
+            text_color="white",
+        ).grid(row=0, column=0, pady=(20, 40), padx=20, sticky='w')
 
-        box_1_image = add_image_widget(box_1, './images/main/profits.png', width=60, height=60, background='#0aadff')
-        box_1_image.grid(row=0, column=1, sticky='ne')
+        box_1_image = add_image_widget(box_1, './images/main/profits.png', width=60, height=60, background='#77d2ff')
+        box_1_image.grid(row=0, column=1, sticky='ne', padx=20)
 
         CTkLabel(
             master=box_1,
@@ -335,12 +358,12 @@ def main_screen(loggedInUserID):
             font=("sans-serif", 30, 'bold'), 
             anchor='center',
             text_color="black"
-        ).grid(row=1, column=0, pady=(40, 40))
+        ).grid(row=1, column=0, pady=(40, 40), columnspan=2)
         
             
         
-        box_2 = tk.Frame(stats_row_frame, bg='#77d2ff', width=350, height=350)
-        box_2.grid(row=0, column=1, padx=(50, 0), sticky='e')
+        box_2 = CTkFrame(stats_row_frame, bg_color='transparent', fg_color="#77d2ff", width=350, height=350)
+        box_2.grid(row=0, column=2, padx=(50, 0), sticky='e')
 
         box_2.grid_propagate(False)
         box_2.columnconfigure(0, weight=1)
@@ -349,13 +372,13 @@ def main_screen(loggedInUserID):
 
         CTkLabel(
             master=box_2,
-            text="Total users:",
+            text="Total employees:",
             font=("sans-serif", 20, 'bold'), 
             anchor='w',
-        ).grid(row=0, column=0, pady=(0, 40), sticky='w')
+        ).grid(row=0, column=0, pady=(10, 40), padx=20, sticky='w')
 
-        box_2_image = add_image_widget(box_2, './images/main/user-group.png', width=60, height=60, background='#0aadff')
-        box_2_image.grid(row=0, column=1, sticky='ne')
+        box_2_image = add_image_widget(box_2, './images/main/user-group.png', width=60, height=60, background='#77d2ff')
+        box_2_image.grid(row=0, column=1, sticky='ne', padx=(20, 20), pady=10)
 
         CTkLabel(
             master=box_2,
@@ -363,7 +386,7 @@ def main_screen(loggedInUserID):
             font=("sans-serif", 30, 'bold'), 
             anchor='center',
             text_color="black"
-        ).grid(row=1, column=0, pady=(40, 40))
+        ).grid(row=1, column=0, pady=(40, 40), columnspan=2)
 
         
 
@@ -531,9 +554,11 @@ def main_screen(loggedInUserID):
         temp_window.wm_transient()
 
     def show_user():
+        panel_manager = PanelManager(None)
         should_refresh = reinitialize_main_column2('users')
         if not should_refresh:
             return
+        
         for index, val in enumerate(User.show_user()):
             # print(val[5])
             pass
@@ -548,23 +573,6 @@ def main_screen(loggedInUserID):
                     user_arr = val
                 if val[0] == id:
                     selectedUser_arr = val
-
-            def update():
-                pword = pwInput.get()
-                # print(pword,user_arr[5])
-                if pword == user_arr[5]:
-                    User.update_user(
-                        id,
-                        empIDInput.get(),
-                        fnameInput.get(),
-                        lnameInput.get(),
-                        salaryInput.get(),
-                        natIDInput.get(),
-                    )
-                    desturi("User edited", "User successfully edited")
-                else:
-                    desturi("Wrong password", "Wrong password entered")
-                return
 
             pop_up = CTkToplevel()
             pop_up.title("Edit User")
@@ -711,63 +719,197 @@ def main_screen(loggedInUserID):
             pop_up.mainloop()
 
         if "UI" == "UI":
+            user_screen = CTkFrame(master=main_column2, fg_color='transparent')
+            user_screen.grid(row=0, column=0, sticky="nsew")
 
-            scrollableFrame = CTkScrollableFrame(master=main_column2, fg_color="red", orientation=HORIZONTAL)
-            scrollableFrame.grid(row=0, column=0, sticky="nsew")
+            user_screen.columnconfigure(0, weight=1)
+            user_screen.rowconfigure(1, weight=1)
 
+            top_bar = CTkFrame(master=user_screen, fg_color='transparent', height=60)
+            top_bar.grid(row=0, column=0, sticky="ew", columnspan=2)
+
+            top_bar.grid_propagate(False)
+
+            # Configure the scrollable frame to expand
+            scrollableFrame = CTkScrollableFrame(master=user_screen, fg_color="transparent", orientation=HORIZONTAL)
+            scrollableFrame.grid(row=1, column=0, sticky="nsew", padx=0, pady=0)
             scrollableFrame.columnconfigure(0, weight=1)
             scrollableFrame.rowconfigure(0, weight=1)
 
-            table = ttk.Treeview(
-                scrollableFrame,
-                columns=(
-                    "ID",
-                    "Employee ID",
-                    "First Name",
-                    "Last Name",
-                    "Salary",
-                    "National ID",
-                ),
-                show="headings",
-            )
+            global selected_user
+            selected_user = []
 
-            headings = [
-                "ID",
-                "Employee ID",
-                "First Name",
-                "Last Name",
-                "Salary",
-                "National ID",
-            ]
-            for heading in headings:
-                table.heading(heading, text=heading)
-                table.column(heading, anchor="center")
-                table.tag_configure("oddrow", background="white")
-                table.tag_configure("evenrow", background="#e7e7e7")
+            def generate_table():
+                # Create and configure the Treeview
+                for widget in scrollableFrame.winfo_children():
+                    widget.destroy()
+ 
+                table = ttk.Treeview(
+                    scrollableFrame,
+                    columns=("ID", "Employee ID", "email", "First Name", "Last Name", "Salary", "National ID", "Password", "IsAdmin"),
+                    show="headings",
+                )
 
-            table.grid(row=0, column=0, padx=20, pady=20, sticky='nsew')
+                # Define and configure each heading
+                headings = ["ID", "Employee ID", "email", "First Name", "Last Name", "Salary", "National ID", "Password", "IsAdmin"]
+                for heading in headings:
+                    table.heading(heading, text=heading)
+                    table.column(heading, anchor="center", stretch=True)  # Set width and allow stretching
+                    table.tag_configure("oddrow", background="#f4fcff")
+                    table.tag_configure("evenrow", background="#e1f8ff")
 
-            for index, val in enumerate(User.show_user()):
-                tag = "evenrow" if index % 2 == 0 else "oddrow"
-                table.insert(parent="", index=index, values=val, tags=tag)
+                # Grid the table with full stretch
+                table.grid(row=0, column=0, padx=0, pady=0, sticky="nsew")
 
-            style = ttk.Style()
-            style.configure(
-                "Treeview",
-                    font=("Helvetica", 10),
-                    rowheight=30,
-                    background="#f8f9fa",  # Light grey background
-                    foreground="black",
-            )
-            style.configure("Treeview.Heading", font=("Helvetica", 12, "bold"))
-            style.map(
-                "Treeview",
-                background=[("selected", "#4A4A4A")],
-                foreground=[("selected", "white")],
-            )
+
+                for index, val in enumerate(User.show_user()):
+                    tag = "evenrow" if index % 2 == 0 else "oddrow"
+                    table.insert(parent="", index=index, values=val, tags=tag)
+
+                style = ttk.Style()
+                style.configure(
+                    "Treeview",
+                        font=("Helvetica", 12),
+                        rowheight=50,
+                        background="#f8f9fa",  # Light grey background
+                        foreground="#2b2b2b",
+                )
+                style.configure("Treeview.Heading", font=("Helvetica", 13, "bold"), foreground="grey", pady=20, background="#bde2ff", bg_color="#bde2ff")
+                style.map(
+                    "Treeview",
+                    background=[("selected", "#2d598b")],
+                    foreground=[("selected", "white")],
+                )
+                # Define the selection event callback
+                def on_tree_select(event):
+                    # Get the selected item ID
+                    selected_item = table.selection()
+                    
+                    # Check if any item is selected
+                    if selected_item:
+                        # Fetch the selected row values
+                        global selected_user 
+                        selected_user = table.item(selected_item[0], "values")
+
+                        select_panel(panel_manager.get_current_panel())
+                        # Print or log the values as needed
+                        
+                # Bind the selection event to the table
+                table.bind("<<TreeviewSelect>>", on_tree_select)
+
+            generate_table()
+
             # table.bind("<Double-Button>", edit_user)
             # deletebtn = CTkButton(main_column2, text="delete", command=delete_user)
             # deletebtn.gird(row=1, column=0)
+
+            top_bar.columnconfigure(0, weight=1)
+
+            add_user_btn = CTkButton(
+                master=top_bar,
+                text="Add User",
+                command=lambda: select_panel('add'),
+                font=("sans-serif", 14, "bold"),
+                corner_radius=6,
+                hover_color="#bde2ff",
+                bg_color='transparent',
+                fg_color="#f5f3f3",
+                text_color='grey',
+                border_width=1,
+                border_color="#eaeaea",
+                height=40,
+                anchor='w',
+                image=CTkImage(
+                    dark_image=Image.open("./images/main/add-male-user-color-icon.png"),
+                    light_image=Image.open("./images/main/add-male-user-color-icon.png"),
+                ),
+            )
+            add_user_btn.grid(
+                row=0,
+                column=1,
+                pady=(10, 10),
+                padx=10,
+                sticky='e'
+            )  # Adjust the second value for more or less margin
+
+            edit_user_btn = CTkButton(
+                master=top_bar,
+                text="Edit User",
+                command=lambda: select_panel('edit'),
+                font=("sans-serif", 14, "bold"),
+                corner_radius=6,
+                hover_color="#bde2ff",
+                bg_color='transparent',
+                fg_color="#f5f3f3",
+                text_color='grey',
+                border_width=1,
+                border_color="#eaeaea",
+                height=40,
+                anchor='w',
+                image=CTkImage(
+                    dark_image=Image.open("./images/main/edit-user-color-icon.png"),
+                    light_image=Image.open("./images/main/edit-user-color-icon.png"),
+                ),
+            )
+            edit_user_btn.grid(
+                row=0,
+                column=2,
+                pady=(10, 10),
+                padx=10,
+                sticky='e'
+            )  # Adjust the second value for more or less margin
+            
+
+            edit_add_box = CTkFrame(user_screen, width=270, height=600, fg_color="transparent")
+            edit_add_box.grid(row=1, column=1, sticky='n')
+
+            edit_add_box.columnconfigure(0, weight=1)
+            edit_add_box.rowconfigure(0, weight=1)
+
+            edit_add_box.grid_propagate(False)
+
+            def select_panel(panel = 'edit'):
+                panel_manager.set_current_panel(panel)
+                for widget in edit_add_box.winfo_children():
+                    widget.destroy()
+                
+                if panel == 'edit':
+                    def update():
+                        empID = selected_user[1]
+                        User.update_user(
+                            empID,
+                            emailInput.get(),
+                            fnameInput.get(),
+                            lnameInput.get(),
+                            salaryInput.get(),
+                            natIDInput.get(),
+                            pwInput.get()
+                        )
+                        generate_table()
+                        desturi("User edited", "User successfully edited")
+                    emailInput, fnameInput, lnameInput, salaryInput, natIDInput, pwInput = generate_panel(edit_add_box, panel, update, selected_user)
+
+                elif panel == 'add':
+                    def add():
+                        isAdmin = 0
+                        empID = generate(size=7)
+                        user_obj = User(
+                            empID,
+                            emailInput.get(),
+                            fnameInput.get(),
+                            lnameInput.get(),
+                            salaryInput.get(),
+                            natIDInput.get(),
+                            pwInput.get(),
+                            isAdmin
+                        )
+                        user_obj.create_user()
+                        generate_table()
+                        desturi("Success!", "User Successfully Added")
+
+                    emailInput, fnameInput, lnameInput, salaryInput, natIDInput, pwInput = generate_panel(edit_add_box, panel, add, selected_user=[])
+                    
+            select_panel()
 
     def create_product():
         # select file fix
@@ -1367,33 +1509,32 @@ def login_screen():  # returns user ID of the logged-in
 
     def validate_login():
         global userId
-        empID = empIDInput.get()
+        email = emailInput.get()
         password = passwordInput.get()
         # print("here",User.show_user())
-        for val in User.show_user():
-            # print('fwfrw',val)
-            if str(val[1]) == empID and val[5] == password:
-                login_screen_obj.destroy()
-                userId = val[1]
-                return
-            else:
-                tempWindow = CTk()
-                tempWindow.title("Wrong Password")
-                tempWindow.iconbitmap("./images/main/profit.ico")
-                tempWindow.bell()
-                if "UI" == "UI":
-                    wp = CTkLabel(
-                        tempWindow,
-                        text="You have entered the wrong login details!",
-                        font=("sans-serif", 30, "bold"),
-                        bg_color="red",
-                    )
-                    wp.pack(padx=10, pady=10)
-                tempWindow.mainloop()
+        user_data = User.verify_user(email, password) 
+        print(user_data)
+        if user_data == False:
+            tempWindow = CTk()
+            tempWindow.title("Wrong Password")
+            tempWindow.iconbitmap("./images/main/profit.ico")
+            tempWindow.bell()
+            if "UI" == "UI":
+                wp = CTkLabel(
+                    tempWindow,
+                    text="You have entered the wrong login details!",
+                    font=("sans-serif", 30, "bold"),
+                    bg_color="red",
+                )
+                wp.pack(padx=10, pady=10)
+            tempWindow.mainloop()
+        else:
+            userId = user_data['empID']
+            login_screen_obj.destroy()
 
     if "UI" == "UI":
         passwordInput = None
-        empIDInput = None
+        emailInput = None
         column1 = None
 
         login_screen_obj.wm_geometry("1300x700")
@@ -1410,7 +1551,7 @@ def login_screen():  # returns user ID of the logged-in
             new_width = int(max(window_width / 2, 400))
             max_width = 400  # Define a maximum width for the input
             passwordInput.configure(width=int(min(new_width * 0.8, max_width)))
-            empIDInput.configure(width=int(min(new_width * 0.8, max_width)))
+            emailInput.configure(width=int(min(new_width * 0.8, max_width)))
 
             # Configure column1's width
             if window_width <= 1050:
@@ -1497,12 +1638,12 @@ def login_screen():  # returns user ID of the logged-in
         ).grid(row=0, column=0, padx=10, pady=15, sticky='w')
         CTkLabel(
             content_frame_col2, 
-            text="Employee ID: ", 
+            text="Email:", 
             font=("sans-serif", 14), 
             anchor='w', 
             text_color='#515486'
         ).grid(row=1, column=0, padx=10, pady=(10, 5), sticky='w')
-        empIDInput = CTkEntry(
+        emailInput = CTkEntry(
             content_frame_col2, 
             font=("sans-serif", 14), 
             corner_radius=12, 
@@ -1512,7 +1653,7 @@ def login_screen():  # returns user ID of the logged-in
             fg_color='#F1F5FF',
             text_color='black'
             )
-        empIDInput.grid(row=2, column=0, padx=10, pady=(0, 10), sticky='w')
+        emailInput.grid(row=2, column=0, padx=10, pady=(0, 10), sticky='w')
 
         CTkLabel(
             content_frame_col2, 
@@ -1552,25 +1693,32 @@ def login_screen():  # returns user ID of the logged-in
 
 
 
+
 def databases_initialisations():
     conn = sqlite3.connect("./databases/users.db")
     curr = conn.cursor()
     with conn:  # creating ADMIN account in the database
         curr.execute(
-            """ CREATE TABLE IF NOT EXISTS users(
+            """ 
+            CREATE TABLE IF NOT EXISTS users(
                             id INTEGER PRIMARY KEY AUTOINCREMENT,
-                            empID INTEGER UNIQUE,
+                            empID TEXT UNIQUE,
+                            email TEXT UNIQUE,
                             fname TEXT,
                             lname TEXT,
                             salary INTEGER,
-                            nationalID NUMERIC
+                            nationalID NUMERIC,
                             password TEXT,
-                            isAdmin BLOB
-                            )"""
+                            isAdmin INTEGER
+                            )
+            """
         )
-        if curr.execute("SELECT * FROM users").arraysize < 1:
+                # Check if the admin user exists, and if not, insert it
+        if len(curr.execute("SELECT * FROM users").fetchall()) < 1:
+            unique_id = 'IYU2SF7'
             curr.execute(
-                "INSERT INTO users(empID,fname,lname,salary,nationalID,isAdmin) VALUES(1,'admin','nistrator',1234,987456,True)"
+                "INSERT INTO users(empID, email, fname, lname, salary, nationalID, password, isAdmin) VALUES(?, ?, ?, ?, ?, ?, ?, ?)",
+                (unique_id, 'admin@gmail.com', 'admin', 'Overseer', 400000, 987456, '12378956', 1)
             )
     conn = sqlite3.connect("./databases/products.db")
     conn = sqlite3.connect("./databases/transactions.db")
@@ -1845,8 +1993,11 @@ if __name__ == "__main__":
     databases_initialisations()
     # _DEBUG_()
     # print()  # returns user who logged in
-    
-    main_screen(1)
+
+    # user_id = login_screen()
+
+    # if user_id:
+    main_screen('IYU2SF7')
     # User.show_user(35)
 
     # _DEBUG_()

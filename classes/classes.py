@@ -22,29 +22,31 @@ class ScreenManager:
 
 class User:
     def __init__(
-        self, empID, fname, lname, salary, nationalID, password, isAdmin
+        self, empID, email, fname, lname, salary, nationalID, password, isAdmin
     ) -> None:
         # some fields not in table
         self.empID = empID
+        self.email = email
         self.fname = fname
         self.lname = lname
         self.salary = salary
         self.nationalID = nationalID
         self.password = password
-        self.isAdmin = False
+        self.isAdmin = isAdmin
         self.conn = sqlite3.connect("./databases/users.db")
         self.curr = self.conn.cursor()
         with self.conn:
             self.curr.execute(
                 """ CREATE TABLE IF NOT EXISTS users(
                             id INTEGER PRIMARY KEY AUTOINCREMENT,
-                            empID INTEGER UNIQUE,
+                            empID TEXT UNIQUE,
+                            email TEXT UNIQUE,
                             fname TEXT,
                             lname TEXT,
                             salary INTEGER,
                             nationalID NUMERIC
                             password TEXT,
-                            isAdmin BLOB
+                            isAdmin INTEGER
                             )"""
             )
         self.conn.close()
@@ -54,13 +56,15 @@ class User:
         curr = conn.cursor()
         with conn:
             curr.execute(
-                "INSERT INTO users(empID,fname,lname,salary,nationalID,isAdmin) VALUES(:empID,:fname,:lname,:salary,:nationalID,:isAdmin)",
+                "INSERT INTO users(empID, email,fname,lname,salary,nationalID,password,isAdmin) VALUES(:empID,:email,:fname,:lname,:salary,:nationalID,:password,:isAdmin)",
                 {
                     "empID": self.empID,
+                    "email": self.email,
                     "fname": self.fname,
                     "lname": self.lname,
                     "salary": self.salary,
                     "nationalID": self.nationalID,
+                    "password": self.password,
                     "isAdmin": self.isAdmin,
                 },
             )
@@ -68,18 +72,45 @@ class User:
     def show_user(loggedInUserID=None):
         conn = sqlite3.connect("./databases/users.db")
         curr = conn.cursor()
+        
+        # Show specific user if ID provided
         if loggedInUserID:
-            return curr.execute(f"SELECT * FROM users WHERE empID = {loggedInUserID}").fetchone()[2]
+            curr.execute("SELECT * FROM users WHERE empID = ?", (loggedInUserID,))
+            user_data = curr.fetchone()
+            
+            # Return the third column if user exists, else return None
+            if user_data:
+                return user_data[3]  # Replace [2] with the specific column index/name if necessary
+            else:
+                return None
         else:
+            # Show all users if no ID is provided
             with conn:
                 return curr.execute("SELECT * FROM users").fetchall()
+    
+    def verify_user(email, password):
+        conn = sqlite3.connect("./databases/users.db")
+        conn.row_factory = sqlite3.Row  # This makes rows return as dictionaries
+        curr = conn.cursor()
+        
+        with conn:
+            result = curr.execute(
+                "SELECT * FROM users WHERE email = ? AND password = ?", (email, password)
+            ).fetchone()
+            
+            if result:
+                # Convert the Row to a dictionary
+                return dict(result)
+            else:
+                return False
+
             
     def show_user_as_dict(loggedInUserID=None):
         conn = sqlite3.connect("./databases/users.db")
         conn.row_factory = sqlite3.Row
         curr = conn.cursor()
         with conn:
-            curr.execute(f"SELECT * FROM users WHERE empID = {loggedInUserID}")
+            curr.execute("SELECT * FROM users WHERE empID = ?", (loggedInUserID,))
             rows = curr.fetchall()
         
             # Convert rows to a list of dictionaries
@@ -95,20 +126,21 @@ class User:
 
 
 
-    def update_user(id, empID, fname, lname, salary, nationalID):
+    def update_user(empID, email, fname, lname, salary, nationalID, password):
         conn = sqlite3.connect("./databases/users.db")
         curr = conn.cursor()
         with conn:
             # curr.execute("UPDATE users SET empID=669 WHERE id=:id", {"id": id})
             curr.execute(
-                "UPDATE users SET empID=:empID,fname=:fname,lname=:lname,salary=:salary,nationalID=:nationalID WHERE id=:id",
+                "UPDATE users SET email=:email,fname=:fname,lname=:lname,salary=:salary,nationalID=:nationalID,password=:password WHERE empID=:empID",
                 {
-                    "id": id,
-                    "empID": empID,
+                    "email": email,
                     "fname": fname,
                     "lname": lname,
                     "salary": salary,
                     "nationalID": nationalID,
+                    "password": password,
+                    "empID": empID
                 },
             )
 
@@ -308,3 +340,20 @@ class Transaction:
 
 class Receipt:  # hii tuta angalia
     pass
+
+class PanelManager:
+    def __init__(self, initial_panel=None):
+        # Initialize with an initial screen if provided
+        self._current_panel = initial_panel
+
+    def get_current_panel(self):
+        # Getter method for current_screen
+        return self._current_panel
+
+    def set_current_panel(self, target_panel):
+        # Setter method to update the screen
+        if self._current_panel != target_panel:
+            self._current_panel = target_panel
+            return True  # Indicate that a change occurred
+        return False  # No change needed
+    
