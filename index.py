@@ -48,7 +48,12 @@ def main_screen(loggedInUserID):
     window_obj = CTk()
     window_obj.title("Profit Tracker")
     window_obj.iconbitmap("./images/main/profit.ico")
-    window_obj.wm_geometry("1280x720")
+    # Get the screen width and height
+    screen_width = window_obj.winfo_screenwidth()
+    screen_height = window_obj.winfo_screenheight()
+
+    # Set the window size to match the screen size
+    window_obj.geometry(f"{screen_width}x{screen_height}+0+0")
     window_obj.wm_minsize(1280, 720)
 
     mainMenuBar = Menu(window_obj, tearoff=0)
@@ -1537,7 +1542,16 @@ def login_screen():  # returns user ID of the logged-in
         emailInput = None
         column1 = None
 
-        login_screen_obj.wm_geometry("1300x700")
+        window_width = 1300
+        window_height = 700
+
+        screen_width = login_screen_obj.winfo_screenwidth()
+        screen_height = login_screen_obj.winfo_screenheight()
+
+        x_coordinate = (screen_width // 2) - (window_width // 2)
+        y_coordinate = (screen_height // 2) - (window_height // 2)
+
+        login_screen_obj.wm_geometry(f"{window_width}x{window_height}+{x_coordinate}+{y_coordinate}")
         login_screen_obj.wm_maxsize(1400, 700)
         login_screen_obj.wm_minsize(500, 0)
         # Configure grid weights to make columns expand and fill width equally
@@ -1994,10 +2008,11 @@ if __name__ == "__main__":
     # _DEBUG_()
     # print()  # returns user who logged in
 
-    # user_id = login_screen()
+    user_id = login_screen()
+    #'IYU2SF7'
 
-    # if user_id:
-    main_screen('IYU2SF7')
+    if user_id:
+        main_screen(user_id)
     # User.show_user(35)
 
     # _DEBUG_()
