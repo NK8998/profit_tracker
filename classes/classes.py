@@ -215,14 +215,13 @@ class Product:
             return [dict(row) for row in rows]
 
 
-    def update_product(id, prodID, name, descripton, quantity, price, image="PATCH"):
+    def update_product(prodID, name, descripton, quantity, price, image="PATCH"):
         conn = sqlite3.connect("./databases/products.db")
         curr = conn.cursor()
         with conn:
             curr.execute(
-                "UPDATE products SET prodID=:prodID,name=:name,descripton=:descripton,quantity=:quantity,price=:price WHERE id=:id",
+                "UPDATE products SET prodID=:prodID,name=:name,descripton=:descripton,quantity=:quantity,price=:price WHERE prodID=:prodID",
                 {
-                    "id": id,
                     "prodID": prodID,
                     "name": name,
                     "descripton": descripton,
