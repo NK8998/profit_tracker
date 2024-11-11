@@ -6,11 +6,11 @@ profits_per_week = {
     'Week5': 9000,
 }
 
-profit_per_user = {
-    'User1': 1000,
-    'User2': 2000,
-    'User3': 4000,
-    'User4': 1000,
-    'User5': 6000,
-    'User6': 3000
+profit_per_Product = {
+    'Product1': 1000,
+    'Product2': 2000,
+    'Product3': 4000,
+    'Product4': 1000,
+    'Product5': 6000,
+    'Product6': 3000
 }

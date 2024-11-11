@@ -35,9 +35,8 @@ from helpers.panel_generator import generate_panel
 from classes.classes import User, Product, Transaction, ScreenManager, Receipt, PanelManager
 # classes
 
-
 # 
-from mock_data import profits_per_week, profit_per_user
+from mock_data import profits_per_week, profit_per_Product
 # 
 def main_screen(user_data):
 
@@ -300,8 +299,8 @@ def main_screen(user_data):
         # Create the pie chart figure
         fig2 = Figure(figsize=(5, 3), dpi=100)
         ax2 = fig2.add_subplot(111)
-        ax2.pie(profit_per_user.values(), labels=profit_per_user.keys(), autopct='%1.1f%%', startangle=140)
-        ax2.set_title("Profit per User")
+        ax2.pie(profit_per_Product.values(), labels=profit_per_Product.keys(), autopct='%1.1f%%', startangle=140)
+        ax2.set_title("Profit per Product")
 
         # Embed the pie chart in column 1 of chart_row_frame
         canvas2 = FigureCanvasTkAgg(fig2, master=chart_row_frame)
@@ -2428,13 +2427,13 @@ if __name__ == "__main__":
     # _DEBUG_()
     # print()  # returns user who logged in
 
-    # user_obj = login_screen()
+    user_obj = login_screen()
     #'IYU2SF7'
 
     user_obj = {'id': 1, 'empID': 'IYU2SF7', 'email': 'admin@gmail.com', 'fname': 'admin', 'lname': 'Overseer', 'salary': 400000, 'nationalID': 987456, 'password': '12378956', 'isAdmin': 1}
 
-    # if user_obj:
-    main_screen(user_obj)
+    if user_obj:
+        main_screen(user_obj)
     # User.show_user(35)
 
     # _DEBUG_()
