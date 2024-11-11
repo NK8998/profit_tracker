@@ -48,13 +48,14 @@ def main_screen(user_data):
 
     window_obj = CTk()
     window_obj.title("Profit Tracker")
+    # window_obj.attributes('-fullscreen', True)
     window_obj.iconbitmap("./images/main/profit.ico")
     # Get the screen width and height
     screen_width = window_obj.winfo_screenwidth()
     screen_height = window_obj.winfo_screenheight()
 
     # Set the window size to match the screen size
-    window_obj.geometry(f"{screen_width}x{screen_height}+0+0")
+    window_obj.geometry(f"{screen_width - 20}x{screen_height - 20}+0+0")
     window_obj.wm_minsize(1280, 720)
 
     mainMenuBar = Menu(window_obj, tearoff=0)
@@ -1060,6 +1061,8 @@ def main_screen(user_data):
             scrollableFrame.columnconfigure(0, weight=1)
             scrollableFrame.rowconfigure(0, weight=1)
 
+            # scrollableFrame.grid_propagate(False)
+
             global selected_row
             selected_row = []
 
@@ -1070,7 +1073,8 @@ def main_screen(user_data):
                         "Description",
                         "Quantity",
                         "Price",
-                        "Image",]
+                        # "Image",
+                        ]
 
             def generate_table():
                 # Create and configure the Treeview
@@ -1086,8 +1090,8 @@ def main_screen(user_data):
                             "Description",
                             "Quantity",
                             "Price",
-                            "Image",
-                ),
+                            # "Image",
+                    ),
                     show="headings",
                 )
 
@@ -1100,6 +1104,7 @@ def main_screen(user_data):
 
                 # Grid the table with full stretch
                 table.grid(row=0, column=0, padx=0, pady=0, sticky="nsew")
+                # table.pack(fill="both", expand=True)
 
                 print(Product.show_product())
 
@@ -1203,7 +1208,7 @@ def main_screen(user_data):
             
 
             edit_add_box = CTkFrame(product_screen, width=270, height=600, fg_color="transparent")
-            edit_add_box.grid(row=1, column=1, sticky='n')
+            edit_add_box.grid(row=1, column=1, sticky='n', padx=20, pady=20)
 
             edit_add_box.columnconfigure(0, weight=1)
             edit_add_box.rowconfigure(0, weight=1)
@@ -1229,7 +1234,9 @@ def main_screen(user_data):
                     "Price",
                     ] 
                     def update():
-                        prodID = selected_row[1]
+                        if len(selected_row) == 0:
+                            return
+                        prodID = selected_row[1] 
                         Product.update_product(
                             prodID,
                             nameInput.get(),
@@ -1247,7 +1254,7 @@ def main_screen(user_data):
                     "Description",
                     "Quantity",
                     "Price",
-                    "Image"
+                    # "Image"
                     ] 
                     def add():
                         prodID = generate(size=7)
@@ -1257,13 +1264,13 @@ def main_screen(user_data):
                             descInput.get(),
                             quantityInput.get(),
                             priceInput.get(),
-                            imageInput.get()
+                            # imageInput.get()
                         )
                         product_obj.create_product()
                         generate_table()
                         desturi("Success!", "Product Successfully Added")
 
-                    nameInput, descInput, quantityInput, priceInput, imageInput = generate_panel(edit_add_box, panel, add, columns, entity, selected_row=[])
+                    nameInput, descInput, quantityInput, priceInput = generate_panel(edit_add_box, panel, add, columns, entity, selected_row=[])
                     
             select_panel()
 
@@ -1282,15 +1289,15 @@ def main_screen(user_data):
             img_label.image = img  # Keep a reference to avoid garbage collection
             img_label.pack()
 
-        table.bind(
-            "<F1>",
-            lambda event: (
-                show_image(event)
-                if table.identify_region(event.x, event.y) == "cell"
-                and "Image" in table["columns"]
-                else None
-            ),
-        )
+        # table.bind(
+        #     "<F1>",
+        #     lambda event: (
+        #         show_image(event)
+        #         if table.identify_region(event.x, event.y) == "cell"
+        #         and "Image" in table["columns"]
+        #         else None
+        #     ),
+        # )
 
         def item_edit(event):
             selected_item = table.selection()[0]
@@ -1410,11 +1417,11 @@ def main_screen(user_data):
                 row=2, column=0, columnspan=2
             )
 
-        table.bind("<Double-Button>", item_edit)
-        deletebtn = CTkButton(
-            main_column2, text="Delete Selected Product", command=delete_product
-        )
-        deletebtn.pack(pady=10)
+        # table.bind("<Double-Button>", item_edit)
+        # deletebtn = CTkButton(
+        #     main_column2, text="Delete Selected Product", command=delete_product
+        # )
+        # deletebtn.pack(pady=10)
 
     def create_transaction():
         def db_query():
@@ -1620,21 +1627,31 @@ def main_screen(user_data):
 
             pop_up.mainloop()
 
+        panel_manager = PanelManager()
 
-        # Define the Treeview for displaying transaction records
-        table = ttk.Treeview(
-            main_column2,
-            columns=(
-                "Receipt ID",
-                "Employee ID",
-                "Product ID",
-                "Quantity",
-                "Price",
-                "Time",
-            ),
-            show="headings",
-        )
+        transaction_screen = CTkFrame(master=main_column2, fg_color='transparent')
+        transaction_screen.grid(row=0, column=0, sticky="nsew")
 
+        transaction_screen.columnconfigure(0, weight=1)
+        transaction_screen.rowconfigure(1, weight=1)
+
+        top_bar = CTkFrame(master=transaction_screen, fg_color='transparent', height=60)
+        top_bar.grid(row=0, column=0, sticky="ew", columnspan=2)
+
+        top_bar.grid_propagate(False)
+
+        # Configure the scrollable frame to expand
+        scrollableFrame = CTkScrollableFrame(master=transaction_screen, fg_color="transparent", orientation=HORIZONTAL)
+        scrollableFrame.grid(row=1, column=0, sticky="nsew", padx=0, pady=0)
+        scrollableFrame.columnconfigure(0, weight=1)
+        scrollableFrame.rowconfigure(0, weight=1)
+
+        # scrollableFrame.grid_propagate(False)
+
+        global selected_row
+        selected_row = []
+
+                        # Define and configure each heading
         # Set up headings and styles
         headings = [
             "Receipt ID",
@@ -1644,37 +1661,261 @@ def main_screen(user_data):
             "Price",
             "Time",
         ]
+
+        def generate_table():
+            # Create and configure the Treeview
+            for widget in scrollableFrame.winfo_children():
+                widget.destroy()
+
+            table = ttk.Treeview(
+                scrollableFrame,
+                columns=(
+                        "Receipt ID",
+                        "Employee ID",
+                        "Product ID",
+                        "Quantity",
+                        "Price",
+                        "Time",
+                ),
+                show="headings",
+            )
+
+
+            for heading in headings:
+                table.heading(heading, text=heading)
+                table.column(heading, anchor="center", stretch=True)  # Set width and allow stretching
+                table.tag_configure("oddrow", background="#f4fcff")
+                table.tag_configure("evenrow", background="#e1f8ff")
+
+            # Grid the table with full stretch
+            table.grid(row=0, column=0, padx=0, pady=0, sticky="nsew")
+            # table.pack(fill="both", expand=True)
+
+            print(Transaction.show_transaction())
+
+
+            for index, val in enumerate(Transaction.show_transaction()):
+                tag = "evenrow" if index % 2 == 0 else "oddrow"
+                table.insert(parent="", index=index, values=val, tags=tag)
+
+            style = ttk.Style()
+            style.configure(
+                "Treeview",
+                    font=("Helvetica", 12),
+                    rowheight=50,
+                    background="#f8f9fa",  # Light grey background
+                    foreground="#2b2b2b",
+            )
+            style.configure("Treeview.Heading", font=("Helvetica", 13, "bold"), foreground="grey", pady=20, background="#bde2ff", bg_color="#bde2ff")
+            style.map(
+                "Treeview",
+                background=[("selected", "#2d598b")],
+                foreground=[("selected", "white")],
+            )
+            # Define the selection event callback
+            def on_tree_select(event):
+                # Get the selected item ID
+                selected_item = table.selection()
+                
+                # Check if any item is selected
+                if selected_item:
+                    # Fetch the selected row values
+                    global selected_row 
+                    selected_row = table.item(selected_item[0], "values")
+
+                    select_panel(panel_manager.get_current_panel())
+                    # Print or log the values as needed
+                    
+            # Bind the selection event to the table
+            table.bind("<<TreeviewSelect>>", on_tree_select)
+
+        generate_table()
+
+        # table.bind("<Double-Button>", edit_user)
+        # deletebtn = CTkButton(main_column2, text="delete", command=delete_user)
+        # deletebtn.gird(row=1, column=0)
+
+        top_bar.columnconfigure(0, weight=1)
+
+        add_user_btn = CTkButton(
+            master=top_bar,
+            text="Add Transaction",
+            command=lambda: select_panel('add'),
+            font=("sans-serif", 14, "bold"),
+            corner_radius=6,
+            hover_color="#bde2ff",
+            bg_color='transparent',
+            fg_color="#f5f3f3",
+            text_color='grey',
+            border_width=1,
+            border_color="#eaeaea",
+            height=40,
+            anchor='w',
+            image=CTkImage(
+                dark_image=Image.open("./images/main/add-male-user-color-icon.png"),
+                light_image=Image.open("./images/main/add-male-user-color-icon.png"),
+            ),
+        )
+        add_user_btn.grid(
+            row=0,
+            column=1,
+            pady=(10, 10),
+            padx=10,
+            sticky='e'
+        )  # Adjust the second value for more or less margin
+
+        edit_user_btn = CTkButton(
+            master=top_bar,
+            text="Edit Transaction",
+            command=lambda: select_panel('edit'),
+            font=("sans-serif", 14, "bold"),
+            corner_radius=6,
+            hover_color="#bde2ff",
+            bg_color='transparent',
+            fg_color="#f5f3f3",
+            text_color='grey',
+            border_width=1,
+            border_color="#eaeaea",
+            height=40,
+            anchor='w',
+            image=CTkImage(
+                dark_image=Image.open("./images/main/edit-user-color-icon.png"),
+                light_image=Image.open("./images/main/edit-user-color-icon.png"),
+            ),
+        )
+        edit_user_btn.grid(
+            row=0,
+            column=2,
+            pady=(10, 10),
+            padx=10,
+            sticky='e'
+        )  # Adjust the second value for more or less margin
+        
+
+        edit_add_box = CTkFrame(transaction_screen, width=270, height=600, fg_color="transparent")
+        edit_add_box.grid(row=1, column=1, sticky='n', padx=(20, 40), pady=20)
+
+        edit_add_box.columnconfigure(0, weight=1)
+        edit_add_box.rowconfigure(0, weight=1)
+
+        # edit_add_box.grid_propagate(False)
+
+
+        def select_panel(panel = 'edit'):
+
+            entity = 'Transaction'
+            
+            panel_manager.set_current_panel(panel)
+            for widget in edit_add_box.winfo_children():
+                widget.destroy()
+            
+            if panel == 'edit':
+                # Set up headings and styles
+                columns = [
+                    "Quantity",
+                    "Price",
+                    "Time",
+                ]
+                def update():
+                    if len(selected_row) == 0:
+                        return
+                    transactionID = selected_row[0] 
+                    Transaction.update_transaction(
+                        transactionID,
+                        quantityInput.get(),
+                        priceInput.get(),
+                        timeInput.get(),
+                    )
+                    generate_table()
+                    desturi("Product edited", "Product successfully edited")
+                quantityInput, priceInput, timeInput = generate_panel(edit_add_box, panel, update, columns, entity, selected_row)
+
+            elif panel == 'add':
+                # Set up headings and styles
+                columns = [
+                    "Receipt ID",
+                    "Product ID",
+                    "Quantity",
+                    "Price",
+                    "Time",
+                ]
+                def add():
+                    transactionID = generate(size=12)
+                    # Get the current date and time
+                    current_time = datetime.now()
+                    # Format the date and time in a readable format
+                    formatted_time = current_time.strftime("%Y-%m-%d %H:%M:%S")
+                    transaction_obj = Transaction(
+                        transactionID,
+                        receiptIDInput.get(),
+                        productIDInput.get(),
+                        quantityInput.get(),
+                        priceInput.get(),
+                        formatted_time
+                    )
+                    transaction_obj.create_product()
+                    generate_table()
+                    desturi("Success!", "Product Successfully Added")
+
+                receiptIDInput, productIDInput, quantityInput, priceInput = generate_panel(edit_add_box, panel, add, columns, entity, selected_row=[])
+                
+        select_panel()
+
+
+        # # Define the Treeview for displaying transaction records
+        # table = ttk.Treeview(
+        #     main_column2,
+        #     columns=(
+        #         "Receipt ID",
+        #         "Employee ID",
+        #         "Product ID",
+        #         "Quantity",
+        #         "Price",
+        #         "Time",
+        #     ),
+        #     show="headings",
+        # )
+
+        # # Set up headings and styles
+        # headings = [
+        #     "Receipt ID",
+        #     "Employee ID",
+        #     "Product ID",
+        #     "Quantity",
+        #     "Price",
+        #     "Time",
+        # ]
        
-        for heading in headings:
-            table.heading(heading, text=heading)
-            table.column(heading, anchor="center")
-            table.tag_configure("oddrow", background="white")
-            table.tag_configure("evenrow", background="#e7e7e7")
+        # for heading in headings:
+        #     table.heading(heading, text=heading)
+        #     table.column(heading, anchor="center")
+        #     table.tag_configure("oddrow", background="white")
+        #     table.tag_configure("evenrow", background="#e7e7e7")
 
-        table.pack(fill="both", expand=True, padx=20, pady=20)
+        # table.pack(fill="both", expand=True, padx=20, pady=20)
 
-        # Insert transaction records into the Treeview
-        for index, val in enumerate(Transaction.show_transaction()):
-            tag = "evenrow" if index % 2 == 0 else "oddrow"
-            table.insert(parent="", index=index, values=val, tags=(tag,))
+        # # Insert transaction records into the Treeview
+        # for index, val in enumerate(Transaction.show_transaction()):
+        #     tag = "evenrow" if index % 2 == 0 else "oddrow"
+        #     table.insert(parent="", index=index, values=val, tags=(tag,))
 
-        style = ttk.Style()
-        style.configure(
-            "Treeview",
-                font=("Helvetica", 10),
-                rowheight=30,
-                background="#f8f9fa",  # Light grey background
-                foreground="black",
-        )
-        style.configure("Treeview.Heading", font=("Helvetica", 12, "bold"))
-        style.map(
-            "Treeview",
-            background=[("selected", "#4A4A4A")],
-            foreground=[("selected", "white")],
-        )
-        table.bind("<Double-Button>", item_edit)
+        # style = ttk.Style()
+        # style.configure(
+        #     "Treeview",
+        #         font=("Helvetica", 10),
+        #         rowheight=30,
+        #         background="#f8f9fa",  # Light grey background
+        #         foreground="black",
+        # )
+        # style.configure("Treeview.Heading", font=("Helvetica", 12, "bold"))
+        # style.map(
+        #     "Treeview",
+        #     background=[("selected", "#4A4A4A")],
+        #     foreground=[("selected", "white")],
+        # )
+        # table.bind("<Double-Button>", item_edit)
 
-        CTkButton(main_column2, text="Delete", command=delete_transaction).pack(pady=10)
+        # CTkButton(main_column2, text="Delete", command=delete_transaction).pack(pady=10)
 
 
     show_dashboard()       

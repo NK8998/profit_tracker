@@ -153,13 +153,12 @@ class User:
 class Product:
     # ?inventory?
     # "INSERT INTO products VALUES(:prodID,:name,:descripton,:quantity,:price,:image)",
-    def __init__(self, prodID, name, descripton, quantity, price, image) -> None:
+    def __init__(self, prodID, name, descripton, quantity, price) -> None:
         self.prodID = prodID
         self.name = name
         self.descripton = descripton
         self.quantity = quantity
         self.price = price
-        self.image = image
         self.conn = sqlite3.connect("./databases/products.db")
         self.curr = self.conn.cursor()
         with self.conn:
@@ -170,8 +169,7 @@ class Product:
                     name TEXT,
                     descripton TEXT,
                     quantity INTEGER,
-                    price INTEGER,
-                    image TEXT
+                    price INTEGER
                     )"""
             )
         self.conn.close()
@@ -179,22 +177,21 @@ class Product:
     def create_product(self):
         conn = sqlite3.connect("./databases/products.db")
         curr = conn.cursor()
-        hash_value = hashlib.sha256(b"GrOuP 9").hexdigest()
-        ext = self.image.split(".")[-1]
+        # hash_value = hashlib.sha256(b"GrOuP 9").hexdigest()
+        # ext = self.image.split(".")[-1]
 
         with conn:  # add self. and delete above variables
             curr.execute(
-                "INSERT INTO products (prodID,name,descripton,quantity,price,image) VALUES(:prodID,:name,:descripton,:quantity,:price,:image)",
+                "INSERT INTO products (prodID,name,descripton,quantity,price) VALUES(:prodID,:name,:descripton,:quantity,:price)",
                 {
                     "prodID": self.prodID,
                     "name": self.name,
                     "descripton": self.descripton,
                     "quantity": self.quantity,
                     "price": self.price,
-                    "image": hash_value + "." + ext,
                 },
             )
-            shutil.copy(self.image, "./images/products/" + hash_value + "." + ext)
+            # shutil.copy(self.image, "./images/products/" + hash_value + "." + ext)
 
     def show_product():
         conn = sqlite3.connect("./databases/products.db")
@@ -241,14 +238,14 @@ class Transaction:
     # ?receipt? - show transcations made by a person at a time
     # ?total cost? of receipt
     # the price is already there or else there are discounts
-    def __init__(self, madeByEmpID, prodID, quantity, price, time) -> None:
+    def __init__(self, transactionID, madeByEmpID, prodID, quantity, price, discount, time) -> None:
         self.empID = madeByEmpID
         self.prodID = prodID
         self.quantity = quantity
         self.price = price
         self.time = time
-        self.receiptID = 77  # edit records from tbl
-        self.discount = 0
+        self.transactionID = transactionID  # edit records from tbl
+        self.discount = discount
         self.conn = sqlite3.connect("./databases/transactions.db")
         self.curr = self.conn.cursor()
         with self.conn:
@@ -257,7 +254,7 @@ class Transaction:
             self.curr.execute(
                 """ CREATE TABLE IF NOT EXISTS transactions (
                         id INTEGER PRIMARY KEY AUTOINCREMENT,
-                        receiptID INTEGER,
+                        transactionID INTEGER,
                         empID INTEGER,
                         prodID INTEGER,
                         quantity INTEGER,
@@ -308,19 +305,15 @@ class Transaction:
             # Convert rows to a list of dictionaries
             return [dict(row) for row in rows]
 
-    def update_transaction(
-        id, receiptID, empID, prodID, quantity, discount, time
+    def update_transaction(transactionID, quantity, discount, time
     ) -> None:
         conn = sqlite3.connect("./databases/transactions.db")
         curr = conn.cursor()
         with conn:
             curr.execute(
-                " UPDATE transactions  SET receiptID=:receiptID,empID=:empID,prodID=:prodID,quantity=:quantity,discount=:discount,time=:time WHERE id = :id",
+                " UPDATE transactions  SET quantity=:quantity,discount=:discount,time=:time WHERE transactionID = :transactionID",
                 {
-                    "id": id,
-                    "receiptID": receiptID,
-                    "empID": empID,
-                    "prodID": prodID,
+                    "transactionID":transactionID,
                     "quantity": quantity,
                     "discount": discount,
                     "time": time,
