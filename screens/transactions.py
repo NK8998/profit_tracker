@@ -251,6 +251,7 @@ def transaction_screen(reinitialize_main_column2, desturi, main_column2, user_da
         "Employee ID",
         "Product ID",
         "Quantity",
+        "Discount",
         "Price",
         "Time",
     ]
@@ -268,6 +269,7 @@ def transaction_screen(reinitialize_main_column2, desturi, main_column2, user_da
                     "Employee ID",
                     "Product ID",
                     "Quantity",
+                    "Discount",
                     "Price",
                     "Time",
             ),
@@ -407,9 +409,10 @@ def transaction_screen(reinitialize_main_column2, desturi, main_column2, user_da
             # Set up headings and styles
             columns = [
                 "Quantity",
+                "Discount",
                 "Price",
-                "Time",
             ]
+            adjusted_selected_row = selected_row[4:]
             def update():
                 if len(selected_row) == 0:
                     return
@@ -417,12 +420,12 @@ def transaction_screen(reinitialize_main_column2, desturi, main_column2, user_da
                 Transaction.update_transaction(
                     transactionID,
                     quantityInput.get(),
-                    priceInput.get(),
-                    timeInput.get(),
+                    discountInput.get(),
+                    priceInput.get()
                 )
                 generate_table()
                 desturi("Product edited", "Product successfully edited")
-            quantityInput, priceInput, timeInput = generate_panel(edit_add_box, panel, update, columns, entity, selected_row)
+            quantityInput, discountInput, priceInput = generate_panel(edit_add_box, panel, update, columns, entity, adjusted_selected_row)
 
         elif panel == 'add':
             # Set up headings and styles

@@ -303,18 +303,18 @@ class Transaction:
             # Convert rows to a list of dictionaries
             return [dict(row) for row in rows]
 
-    def update_transaction(transactionID, quantity, discount, time
+    def update_transaction(transactionID, quantity, discount, price
     ) -> None:
         conn = sqlite3.connect("./databases/transactions.db")
         curr = conn.cursor()
         with conn:
             curr.execute(
-                " UPDATE transactions  SET quantity=:quantity,discount=:discount,time=:time WHERE transactionID = :transactionID",
+                " UPDATE transactions  SET quantity=:quantity,discount=:discount,price=:price WHERE transactionID = :transactionID",
                 {
                     "transactionID":transactionID,
                     "quantity": quantity,
                     "discount": discount,
-                    "time": time,
+                    "price": price
                 },
             )
 

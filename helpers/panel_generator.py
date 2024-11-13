@@ -29,7 +29,7 @@ def generate_panel(parent, type, command, columns, entity, selected_row=[]):
         label.grid(row=row_index + 1, column=0, sticky='w', pady=(10, 0), padx=10)
         input_field = CTkEntry(
                 parent, 
-                textvariable=StringVar(value=selected_row[index + 2] if len(selected_row) > 1 else ''), 
+                textvariable=StringVar(value=selected_row[index] if len(selected_row) > 1 else ''), 
                 width=250, 
                 height=35, 
                 border_width=1, 

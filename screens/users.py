@@ -336,7 +336,10 @@ def user_screen(reinitialize_main_column2, desturi, main_column2):
             for widget in edit_add_box.winfo_children():
                 widget.destroy()
             
+            
             if panel == 'edit':
+                adjusted_selected_row = selected_row[2:]
+
                 def update():
                     empID = selected_row[1]
                     User.update_user(
@@ -350,7 +353,7 @@ def user_screen(reinitialize_main_column2, desturi, main_column2):
                     )
                     generate_table()
                     desturi("User edited", "User successfully edited")
-                emailInput, fnameInput, lnameInput, salaryInput, natIDInput, pwInput = generate_panel(edit_add_box, panel, update, columns, entity, selected_row)
+                emailInput, fnameInput, lnameInput, salaryInput, natIDInput, pwInput = generate_panel(edit_add_box, panel, update, columns, entity, adjusted_selected_row)
 
             elif panel == 'add':
                 def add():

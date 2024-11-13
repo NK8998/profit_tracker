@@ -503,8 +503,8 @@ def create_table(name):
     conn.close()
 
 def databases_initialisations():
-    remove_table_from_db('transactions')
-    create_table('transactions')
+    # remove_table_from_db('transactions')
+    # create_table('transactions')
     conn = sqlite3.connect("./databases/users.db")
     curr = conn.cursor()
     with conn:  # creating ADMIN account in the database

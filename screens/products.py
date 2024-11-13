@@ -357,6 +357,8 @@ def product_screen(reinitialize_main_column2, desturi, main_column2):
         
             
             if panel == 'edit':
+                adjusted_selected_row = selected_row[2:]
+
                 columns = [
                 "Name",
                 "Description",
@@ -376,7 +378,7 @@ def product_screen(reinitialize_main_column2, desturi, main_column2):
                     )
                     generate_table()
                     desturi("Product edited", "Product successfully edited")
-                nameInput, descInput, quantityInput, priceInput = generate_panel(edit_add_box, panel, update, columns, entity, selected_row)
+                nameInput, descInput, quantityInput, priceInput = generate_panel(edit_add_box, panel, update, columns, entity, adjusted_selected_row)
 
             elif panel == 'add':
                 columns = [
