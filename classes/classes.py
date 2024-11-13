@@ -239,18 +239,16 @@ class Transaction:
     # ?total cost? of receipt
     # the price is already there or else there are discounts
     def __init__(self, transactionID, madeByEmpID, prodID, quantity, price, discount, time) -> None:
+        self.transactionID = transactionID  # edit records from tbl
         self.empID = madeByEmpID
         self.prodID = prodID
         self.quantity = quantity
         self.price = price
-        self.time = time
-        self.transactionID = transactionID  # edit records from tbl
         self.discount = discount
+        self.time = time
         self.conn = sqlite3.connect("./databases/transactions.db")
         self.curr = self.conn.cursor()
         with self.conn:
-            self.curr.execute("ATTACH DATABASE 'products.db' AS products")
-            self.curr.execute("ATTACH DATABASE 'users.db' AS users")
             self.curr.execute(
                 """ CREATE TABLE IF NOT EXISTS transactions (
                         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -258,10 +256,9 @@ class Transaction:
                         empID INTEGER,
                         prodID INTEGER,
                         quantity INTEGER,
+                        price INTEGER,
                         discount INTEGER,
-                        time NUMERIC,
-                        FOREIGN KEY (prodID) REFERENCES products(id),
-                        FOREIGN KEY (empID) REFERENCES users(id)
+                        time NUMERIC
                         )"""
             )
         self.conn.close()
@@ -277,12 +274,13 @@ class Transaction:
         idHotfix += 1
         with conn:
             curr.execute(
-                "INSERT INTO transactions(receiptID,empID,prodID,quantity,discount,time) VALUES(:receiptID,:empID,:prodID,:quantity,:discount,:time)",
+                "INSERT INTO transactions(transactionID,empID,prodID,quantity,price,discount,time) VALUES(:transactionID,:empID,:prodID,:quantity,:price,:discount,:time)",
                 {
-                    "receiptID": self.receiptID,
+                    "transactionID" : self.transactionID,
                     "empID": self.empID,
                     "prodID": self.prodID,
                     "quantity": self.quantity,
+                    "price": self.price,
                     "discount": self.discount,
                     "time": self.time,
                 },

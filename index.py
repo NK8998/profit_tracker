@@ -109,7 +109,7 @@ def main_screen(user_data):
         product_screen(reinitialize_main_column2, desturi, main_column2)
 
     def show_transaction():
-        transaction_screen(reinitialize_main_column2, desturi, main_column2)
+        transaction_screen(reinitialize_main_column2, desturi, main_column2, user_data)
 
     def set_up_main():
         # main_column 1 children
@@ -470,7 +470,41 @@ def login_screen():  # returns user ID of the logged-in
     login_screen_obj.mainloop()
     return user_obj
 
+
+def remove_table_from_db(name):
+    conn = sqlite3.connect(f"./databases/{name}.db")
+    curr = conn.cursor()
+    with conn:  # creating ADMIN account in the database
+        curr.execute(
+            f""" 
+            DROP TABLE IF EXISTS {name};
+            """
+        )
+    conn.close()
+
+
+def create_table(name):
+    conn = sqlite3.connect(f"./databases/{name}.db")
+    curr = conn.cursor()
+    with conn:  # creating ADMIN account in the database
+        curr.execute(
+            f""" CREATE TABLE IF NOT EXISTS {name} (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        transactionID INTEGER,
+                        empID INTEGER,
+                        prodID INTEGER,
+                        quantity INTEGER,
+                        price INTEGER,
+                        discount INTEGER,
+                        time NUMERIC
+                        )
+            """
+        )
+    conn.close()
+
 def databases_initialisations():
+    remove_table_from_db('transactions')
+    create_table('transactions')
     conn = sqlite3.connect("./databases/users.db")
     curr = conn.cursor()
     with conn:  # creating ADMIN account in the database

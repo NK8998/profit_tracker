@@ -3,7 +3,7 @@ from tkinter import *
 from PIL import Image
 from tkinter import ttk
 from nanoid import generate
-import datetime
+from datetime import datetime
 
 
 # helpers
@@ -85,7 +85,7 @@ def create_transaction():
     temp_window.wm_transient()
 
 
-def transaction_screen(reinitialize_main_column2, desturi, main_column2):
+def transaction_screen(reinitialize_main_column2, desturi, main_column2, user_data):
     should_refresh = reinitialize_main_column2('transactions')
     if not should_refresh:
         return
@@ -246,7 +246,8 @@ def transaction_screen(reinitialize_main_column2, desturi, main_column2):
                     # Define and configure each heading
     # Set up headings and styles
     headings = [
-        "Receipt ID",
+        "ID",
+        "Transaction ID",
         "Employee ID",
         "Product ID",
         "Quantity",
@@ -262,7 +263,8 @@ def transaction_screen(reinitialize_main_column2, desturi, main_column2):
         table = ttk.Treeview(
             scrollableFrame,
             columns=(
-                    "Receipt ID",
+                    "ID",
+                    "Transaction ID",
                     "Employee ID",
                     "Product ID",
                     "Quantity",
@@ -425,13 +427,15 @@ def transaction_screen(reinitialize_main_column2, desturi, main_column2):
         elif panel == 'add':
             # Set up headings and styles
             columns = [
-                "Receipt ID",
                 "Product ID",
                 "Quantity",
                 "Price",
-                "Time",
+                "Discount"
             ]
             def add():
+
+                loggedInUserID = user_data['empID']
+                
                 transactionID = generate(size=12)
                 # Get the current date and time
                 current_time = datetime.now()
@@ -439,16 +443,17 @@ def transaction_screen(reinitialize_main_column2, desturi, main_column2):
                 formatted_time = current_time.strftime("%Y-%m-%d %H:%M:%S")
                 transaction_obj = Transaction(
                     transactionID,
-                    receiptIDInput.get(),
+                    loggedInUserID,
                     productIDInput.get(),
                     quantityInput.get(),
                     priceInput.get(),
+                    discountInput.get(),
                     formatted_time
                 )
-                transaction_obj.create_product()
+                transaction_obj.create_transaction()
                 generate_table()
                 desturi("Success!", "Product Successfully Added")
 
-            receiptIDInput, productIDInput, quantityInput, priceInput = generate_panel(edit_add_box, panel, add, columns, entity, selected_row=[])
+            productIDInput, quantityInput, discountInput, priceInput = generate_panel(edit_add_box, panel, add, columns, entity, selected_row=[])
             
     select_panel()
