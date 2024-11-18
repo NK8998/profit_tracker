@@ -467,21 +467,21 @@ def transaction_screen(reinitialize_main_column2, desturi, main_column2, user_da
 
     CTkLabel(master=right_panel, text="Search product: ", text_color="grey").grid(row=2, column=0, sticky='n', pady=(5, 5))
 
-    get_product_panel =  CTkFrame(right_panel, width=260, height=250, fg_color="#c5c5c5")
-    get_product_panel.grid(row=3, column=0, sticky='n', padx=(20, 20), pady=(0, 40))
+    get_product_panel =  CTkFrame(right_panel, width=240, height=250, fg_color="#c5c5c5")
+    get_product_panel.grid(row=3, column=0, sticky='n', padx=(10, 10), pady=(0, 40))
 
         # Add an input field to the first row of get_product_panel
     input_field = CTkEntry(
                         get_product_panel, 
                         placeholder_text="Enter product name",
-                        width=240, 
+                        width=260, 
                         height=35, 
                         border_width=1, 
                         border_color="#e9e9e9", 
                         bg_color='transparent', 
                         fg_color='#F1F5FF', 
                         text_color="#393939")
-    input_field.grid(row=0, column=0, padx=10, pady=10, sticky="ew")
+    input_field.grid(row=0, column=0, padx=5, pady=10, sticky="ew")
 
     scrollableProducts_panel = CTkScrollableFrame(get_product_panel, width=240, height=200, orientation='vertical', fg_color="transparent")
     scrollableProducts_panel.grid(row=1, column=0, sticky='n', padx=(5, 5))
@@ -513,7 +513,7 @@ def transaction_screen(reinitialize_main_column2, desturi, main_column2, user_da
                                      text=f"{i}.{product['name']}, ID: {product['prodID']} Price: {product['price']}", 
                                      fg_color="#bfbdbd", 
                                      corner_radius=8,
-                                     width=220,
+                                     width=250,
                                      image=CTkImage(
                                         dark_image=Image.open("./images/main/clipboard.png"),
                                         light_image=Image.open("./images/main/clipboard.png"),
