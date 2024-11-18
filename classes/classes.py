@@ -210,6 +210,18 @@ class Product:
         
             # Convert rows to a list of dictionaries
             return [dict(row) for row in rows]
+    
+    def filter_products_as_Dict(query):
+        conn = sqlite3.connect("./databases/products.db")
+        conn.row_factory = sqlite3.Row
+        curr = conn.cursor()
+        with conn:
+            curr.execute("SELECT * FROM products WHERE name LIKE ?", ('%' + query + '%',))
+            rows = curr.fetchall()
+
+            # Convert rows to a list of dictionaries
+            return [dict(row) for row in rows]
+
 
 
     def update_product(prodID, name, descripton, quantity, price, image="PATCH"):

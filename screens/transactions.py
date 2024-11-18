@@ -12,7 +12,7 @@ from helpers.panel_generator import generate_panel
 # helpers
 
 # clases
-from classes.classes import PanelManager, Transaction
+from classes.classes import PanelManager, Transaction, Product
 # classes
 
 def create_transaction():
@@ -225,6 +225,7 @@ def transaction_screen(reinitialize_main_column2, desturi, main_column2, user_da
     transaction_screen.grid(row=0, column=0, sticky="nsew")
 
     transaction_screen.columnconfigure(0, weight=1)
+    # transaction_screen.columnconfigure(1, weight=1)
     transaction_screen.rowconfigure(1, weight=1)
 
     top_bar = CTkFrame(master=transaction_screen, fg_color='transparent', height=60)
@@ -234,7 +235,7 @@ def transaction_screen(reinitialize_main_column2, desturi, main_column2, user_da
 
     # Configure the scrollable frame to expand
     scrollableFrame = CTkScrollableFrame(master=transaction_screen, fg_color="transparent", orientation=HORIZONTAL)
-    scrollableFrame.grid(row=1, column=0, sticky="nsew", padx=0, pady=0)
+    scrollableFrame.grid(row=1, column=0, sticky="nsew", padx=0, pady=0, rowspan=4)
     scrollableFrame.columnconfigure(0, weight=1)
     scrollableFrame.rowconfigure(0, weight=1)
 
@@ -386,10 +387,13 @@ def transaction_screen(reinitialize_main_column2, desturi, main_column2, user_da
         padx=10,
         sticky='e'
     )  # Adjust the second value for more or less margin
+
+    right_panel = CTkScrollableFrame(transaction_screen, width=300, fg_color="transparent")
+    right_panel.grid(row=1, column=1, sticky='nsew')
     
 
-    edit_add_box = CTkFrame(transaction_screen, width=270, height=600, fg_color="transparent")
-    edit_add_box.grid(row=1, column=1, sticky='n', padx=(20, 40), pady=20)
+    edit_add_box = CTkFrame(right_panel, width=270, height=600, fg_color="transparent")
+    edit_add_box.grid(row=1, column=0, sticky='n', padx=(20, 40))
 
     edit_add_box.columnconfigure(0, weight=1)
     edit_add_box.rowconfigure(0, weight=1)
@@ -460,3 +464,86 @@ def transaction_screen(reinitialize_main_column2, desturi, main_column2, user_da
             productIDInput, quantityInput, discountInput, priceInput = generate_panel(edit_add_box, panel, add, columns, entity, selected_row=[])
             
     select_panel()
+
+    CTkLabel(master=right_panel, text="Search product: ", text_color="grey").grid(row=2, column=0, sticky='n', pady=(5, 5))
+
+    get_product_panel =  CTkFrame(right_panel, width=260, height=250, fg_color="#c5c5c5")
+    get_product_panel.grid(row=3, column=0, sticky='n', padx=(20, 20), pady=(0, 40))
+
+        # Add an input field to the first row of get_product_panel
+    input_field = CTkEntry(
+                        get_product_panel, 
+                        placeholder_text="Enter product name",
+                        width=240, 
+                        height=35, 
+                        border_width=1, 
+                        border_color="#e9e9e9", 
+                        bg_color='transparent', 
+                        fg_color='#F1F5FF', 
+                        text_color="#393939")
+    input_field.grid(row=0, column=0, padx=10, pady=10, sticky="ew")
+
+    scrollableProducts_panel = CTkScrollableFrame(get_product_panel, width=240, height=200, orientation='vertical', fg_color="transparent")
+    scrollableProducts_panel.grid(row=1, column=0, sticky='n', padx=(5, 5))
+
+    # Function to copy the product ID to the clipboard when the label is clicked
+    def copy_to_clipboard(prodID):
+        r = Tk()
+        r.withdraw()  # Hide the main window
+        r.clipboard_clear()  # Clear the clipboard
+        r.clipboard_append(prodID)  # Append the product ID to the clipboard
+        r.update()  # Keep the clipboard content after closing the window
+        r.destroy()  # Close the Tkinter instance
+
+    def on_input_change(event):
+        for widget in scrollableProducts_panel.winfo_children():
+            widget.destroy()
+        
+        query = input_field.get()
+        if len(query) == 0:
+            return
+        
+        products_arr = Product.filter_products_as_Dict(query)
+        # Iterate through the products_arr and add labels to scrollableProducts_panel
+        for i, product in enumerate(products_arr, start=1):
+            # Create a formatted label for each product
+            product_label = CTkLabel(scrollableProducts_panel,
+                                     height=34,
+                                     anchor='w', 
+                                     text=f"{i}.{product['name']}, ID: {product['prodID']} Price: {product['price']}", 
+                                     fg_color="#bfbdbd", 
+                                     corner_radius=8,
+                                     width=220,
+                                     image=CTkImage(
+                                        dark_image=Image.open("./images/main/clipboard.png"),
+                                        light_image=Image.open("./images/main/clipboard.png"),
+                                    ),
+                                     compound="left"
+                                     )
+            product_label.grid(row=i, column=0, padx=10, pady=5, sticky="w")
+            product_label.grid_propagate(False)
+
+            # Change cursor to pointer when hovering over the label
+            product_label.configure(cursor="hand2")
+
+            # Bind the click event to the copy_to_clipboard function
+            product_label.bind("<Button-1>", lambda event, prodID=product['prodID']: copy_to_clipboard(prodID))
+
+            def on_enter(event, label=product_label):
+                label.configure(fg_color="#757575")
+
+            def on_leave(event, label=product_label):
+                label.configure(fg_color="#bfbdbd")
+
+            product_label.bind("<Enter>", on_enter)
+            product_label.bind("<Leave>", on_leave)
+
+
+    # Bind the <<Modified>> event to the input field to detect changes
+    input_field.bind("<KeyRelease>", on_input_change)
+
+
+
+
+
+    
