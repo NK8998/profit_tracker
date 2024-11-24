@@ -197,13 +197,14 @@ def product_screen(reinitialize_main_column2, desturi, main_column2):
         selected_row = []
 
                         # Define and configure each heading
-        headings = ["ID",
+        headings = [
+                    "ID",
                     "Product ID",
                     "Name",
                     "Description",
                     "Quantity",
-                    "Price",
-                    # "Image",
+                    'buying_price',
+                    'selling_price' 
                     ]
 
         def generate_table():
@@ -219,8 +220,8 @@ def product_screen(reinitialize_main_column2, desturi, main_column2):
                         "Name",
                         "Description",
                         "Quantity",
-                        "Price",
-                        # "Image",
+                        'buying_price',
+                        'selling_price' 
                 ),
                 show="headings",
             )
@@ -275,10 +276,6 @@ def product_screen(reinitialize_main_column2, desturi, main_column2):
             table.bind("<<TreeviewSelect>>", on_tree_select)
 
         generate_table()
-
-        # table.bind("<Double-Button>", edit_user)
-        # deletebtn = CTkButton(main_column2, text="delete", command=delete_user)
-        # deletebtn.gird(row=1, column=0)
 
         top_bar.columnconfigure(0, weight=1)
 
@@ -343,8 +340,14 @@ def product_screen(reinitialize_main_column2, desturi, main_column2):
         edit_add_box.columnconfigure(0, weight=1)
         edit_add_box.rowconfigure(0, weight=1)
 
-        # edit_add_box.grid_propagate(False)
-
+        def delete_prodcut():
+            if len(selected_row) == 0:
+                desturi("...", "Please select a product first")
+                return
+            product_id = selected_row[1]
+            Product.delete_product(product_id)
+            generate_table()
+            desturi("Success", "Product successfully deleted")
 
         def select_panel(panel = 'edit'):
 
@@ -360,48 +363,93 @@ def product_screen(reinitialize_main_column2, desturi, main_column2):
                 adjusted_selected_row = selected_row[2:]
 
                 columns = [
-                "Name",
-                "Description",
-                "Quantity",
-                "Price",
+                    "Name",
+                    "Description",
+                    "Quantity",
+                    "Buying price",
+                    "Selling price"
                 ] 
                 def update():
                     if len(selected_row) == 0:
+                        desturi("Error", "No product selected for editing!")
                         return
+
+                    # Check for missing fields
+                    if not nameInput.get().strip():
+                        desturi("Error", "Name field is required!")
+                        return
+                    if not descInput.get().strip():
+                        desturi("Error", "Description field is required!")
+                        return
+                    if not quantityInput.get().strip():
+                        desturi("Error", "Quantity field is required!")
+                        return
+                    if not buyingPriceInput.get().strip():
+                        desturi("Error", "Buying price field is required!")
+                        return
+                    if not sellingPriceInput.get().strip():
+                        desturi("Error", "Selling price field is required!")
+                        return
+
+                    # Proceed with updating the product
                     prodID = selected_row[1] 
                     Product.update_product(
                         prodID,
                         nameInput.get(),
                         descInput.get(),
                         quantityInput.get(),
-                        priceInput.get(),
+                        buyingPriceInput.get(),
+                        sellingPriceInput.get()
                     )
                     generate_table()
-                    desturi("Product edited", "Product successfully edited")
-                nameInput, descInput, quantityInput, priceInput = generate_panel(edit_add_box, panel, update, columns, entity, adjusted_selected_row)
+                    desturi("Product Edited", "Product successfully edited")
+                
+                nameInput, descInput, quantityInput, buyingPriceInput, sellingPriceInput = generate_panel(
+                    edit_add_box, panel, update, columns, entity, delete_prodcut, adjusted_selected_row
+                )
+
 
             elif panel == 'add':
                 columns = [
-                "Name",
-                "Description",
-                "Quantity",
-                "Price",
-                # "Image"
+                    "Name",
+                    "Description",
+                    "Quantity",
+                    "Buying price",
+                    "Selling price"
                 ] 
                 def add():
+                    # Check for missing fields
+                    if not nameInput.get().strip():
+                        desturi("Error", "Name field is required!")
+                        return
+                    if not descInput.get().strip():
+                        desturi("Error", "Description field is required!")
+                        return
+                    if not quantityInput.get().strip():
+                        desturi("Error", "Quantity field is required!")
+                        return
+                    if not buyingPriceInput.get().strip():
+                        desturi("Error", "Buying price field is required!")
+                        return
+                    if not sellingPriceInput.get().strip():
+                        desturi("Error", "Selling price field is required!")
+                        return
+
+                    # Proceed if all fields are valid
                     prodID = generate(size=7)
                     product_obj = Product(
                         prodID,
                         nameInput.get(),
                         descInput.get(),
                         quantityInput.get(),
-                        priceInput.get(),
-                        # imageInput.get()
+                        buyingPriceInput.get(),
+                        sellingPriceInput.get()
                     )
                     product_obj.create_product()
                     generate_table()
                     desturi("Success!", "Product Successfully Added")
 
-                nameInput, descInput, quantityInput, priceInput = generate_panel(edit_add_box, panel, add, columns, entity, selected_row=[])
+
+                nameInput, descInput, quantityInput, buyingPriceInput, sellingPriceInput = generate_panel(edit_add_box, panel, add, columns, entity, delete_prodcut, selected_row=[])
                 
         select_panel()

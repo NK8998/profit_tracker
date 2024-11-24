@@ -244,16 +244,19 @@ def transaction_screen(reinitialize_main_column2, desturi, main_column2, user_da
     global selected_row
     selected_row = []
 
+    global adding_row
+    adding_row = []
+
                     # Define and configure each heading
     # Set up headings and styles
     headings = [
-        "ID",
-        "Transaction ID",
-        "Employee ID",
-        "Product ID",
+        "Trnsaction ID",
+        "Employee Name",
+        "Product",
         "Quantity",
-        "Discount",
-        "Price",
+        "Buying price",
+        "Selling price",
+        "Discount (%)",
         "Time",
     ]
 
@@ -265,13 +268,13 @@ def transaction_screen(reinitialize_main_column2, desturi, main_column2, user_da
         table = ttk.Treeview(
             scrollableFrame,
             columns=(
-                    "ID",
-                    "Transaction ID",
-                    "Employee ID",
-                    "Product ID",
+                    "Trnsaction ID",
+                    "Employee Name",
+                    "Product",
                     "Quantity",
-                    "Discount",
-                    "Price",
+                    "Buying price",
+                    "Selling price",
+                    "Discount (%)",
                     "Time",
             ),
             show="headings",
@@ -287,9 +290,6 @@ def transaction_screen(reinitialize_main_column2, desturi, main_column2, user_da
         # Grid the table with full stretch
         table.grid(row=0, column=0, padx=0, pady=0, sticky="nsew")
         # table.pack(fill="both", expand=True)
-
-        print(Transaction.show_transaction())
-
 
         for index, val in enumerate(Transaction.show_transaction()):
             tag = "evenrow" if index % 2 == 0 else "oddrow"
@@ -361,32 +361,33 @@ def transaction_screen(reinitialize_main_column2, desturi, main_column2, user_da
         sticky='e'
     )  # Adjust the second value for more or less margin
 
-    edit_user_btn = CTkButton(
-        master=top_bar,
-        text="Edit Transaction",
-        command=lambda: select_panel('edit'),
-        font=("sans-serif", 14, "bold"),
-        corner_radius=6,
-        hover_color="#bde2ff",
-        bg_color='transparent',
-        fg_color="#f5f3f3",
-        text_color='grey',
-        border_width=1,
-        border_color="#eaeaea",
-        height=40,
-        anchor='w',
-        image=CTkImage(
-            dark_image=Image.open("./images/main/edit-user-color-icon.png"),
-            light_image=Image.open("./images/main/edit-user-color-icon.png"),
-        ),
-    )
-    edit_user_btn.grid(
-        row=0,
-        column=2,
-        pady=(10, 10),
-        padx=10,
-        sticky='e'
-    )  # Adjust the second value for more or less margin
+    if user_data['isAdmin'] == 1:
+        edit_user_btn = CTkButton(
+            master=top_bar,
+            text="Edit Transaction",
+            command=lambda: select_panel('edit'),
+            font=("sans-serif", 14, "bold"),
+            corner_radius=6,
+            hover_color="#bde2ff",
+            bg_color='transparent',
+            fg_color="#f5f3f3",
+            text_color='grey',
+            border_width=1,
+            border_color="#eaeaea",
+            height=40,
+            anchor='w',
+            image=CTkImage(
+                dark_image=Image.open("./images/main/edit-user-color-icon.png"),
+                light_image=Image.open("./images/main/edit-user-color-icon.png"),
+            ),
+        )
+        edit_user_btn.grid(
+            row=0,
+            column=2,
+            pady=(10, 10),
+            padx=10,
+            sticky='e'
+        )  # Adjust the second value for more or less margin
 
     right_panel = CTkScrollableFrame(transaction_screen, width=300, fg_color="transparent")
     right_panel.grid(row=1, column=1, sticky='nsew')
@@ -400,9 +401,17 @@ def transaction_screen(reinitialize_main_column2, desturi, main_column2, user_da
 
     # edit_add_box.grid_propagate(False)
 
+    def delete_transaction():
+        if len(selected_row) == 0:
+            desturi("...", "Please select a transaction first")
+            return
+        transactionID = selected_row[0]
+        Transaction.delete_transaction(transactionID)
+        generate_table()
+        desturi("Success", "Transaction successfully deleted")
 
-    def select_panel(panel = 'edit'):
 
+    def select_panel(panel = 'add'):
         entity = 'Transaction'
         
         panel_manager.set_current_panel(panel)
@@ -413,68 +422,150 @@ def transaction_screen(reinitialize_main_column2, desturi, main_column2, user_da
             # Set up headings and styles
             columns = [
                 "Quantity",
-                "Discount",
-                "Price",
+                "Discount (%)"
             ]
-            adjusted_selected_row = selected_row[4:]
+            
+            # Ensure that selected_row is not empty and has sufficient elements
+            adjusted_selected_row = [selected_row[3], selected_row[6]] if len(selected_row) > 6 else []
+            
             def update():
+                # Check if selected_row is empty
                 if len(selected_row) == 0:
+                    desturi("Error", "No product selected for editing.")
                     return
+                
+                # Check if quantity and discount inputs are valid
+                quantity = quantityInput.get()
+                discount = discountInput.get()
+                
+                if not quantity.isdigit() or int(quantity) <= 0:
+                    desturi("Error", "Invalid quantity entered. Please enter a positive number.")
+                    return
+                
+                if not discount.isdigit() or not (0 <= int(discount) <= 100):
+                    desturi("Error", "Invalid discount entered. Please enter a number between 0 and .")
+                    return
+
+                # Ensure the transaction ID is valid
                 transactionID = selected_row[0] 
-                Transaction.update_transaction(
-                    transactionID,
-                    quantityInput.get(),
-                    discountInput.get(),
-                    priceInput.get()
-                )
-                generate_table()
-                desturi("Product edited", "Product successfully edited")
-            quantityInput, discountInput, priceInput = generate_panel(edit_add_box, panel, update, columns, entity, adjusted_selected_row)
+                if not transactionID:
+                    desturi("Error", "Transaction ID not found.")
+                    return
+                
+                try:
+                    # Update the transaction in the database
+                    Transaction.update_transaction(
+                        transactionID,
+                        int(quantity),  # Ensure quantity is an integer
+                        int(discount),  # Ensure discount is an integer
+                    )
+                    generate_table()
+                    desturi("Product edited", "Product successfully edited")
+                except Exception as e:
+                    desturi("Error", f"An error occurred while editing the product: {str(e)}")
+
+            # Generate panel with inputs and pass the adjusted selected row
+            quantityInput, discountInput = generate_panel(edit_add_box, panel, update, columns, entity, delete_transaction, adjusted_selected_row)
+
 
         elif panel == 'add':
             # Set up headings and styles
             columns = [
                 "Product ID",
                 "Quantity",
-                "Price",
-                "Discount"
+                "Discount (%)",
             ]
             def add():
+                global adding_row
 
+                # Fetch logged-in user details
                 loggedInUserID = user_data['empID']
-                
+                employeeName = f"{user_data['fname']} {user_data['lname']}"
+
                 transactionID = generate(size=12)
                 # Get the current date and time
                 current_time = datetime.now()
-                # Format the date and time in a readable format
                 formatted_time = current_time.strftime("%Y-%m-%d %H:%M:%S")
+
+                # Get input values
+                prodID = productIDInput.get().strip()
+                quantity = quantityInput.get().strip()
+                discount = discountInput.get().strip()
+
+                # Validate inputs
+                if not prodID:
+                    desturi('Error', "Product ID cannot be empty.")
+                    return
+
+                if not quantity:
+                    desturi('Error', "Quantity cannot be empty.")
+                    return
+
+                if not discount:
+                    desturi('Error', "Discount cannot be empty.")
+                    return
+
+                # Validate product existence
+                product = Product.get_specific_product(prodID)
+                if not product:
+                    desturi('Error', "Product not found. Please check the Product ID.")
+                    return
+
+                # Validate quantity as a positive number
+                if not quantity.isdigit() or int(quantity) <= 0:
+                    desturi('Error', "Quantity must be a positive number.")
+                    return
+
+                quantity_to_add = int(quantity)
+
+                # Check stock availability
+                remaining_quantity = product['quantity'] - quantity_to_add
+                if remaining_quantity < 0:
+                    desturi('Error', f"There isn't enough {product['name']} products to sell currently.")
+                    return
+
+                discount_value = float(discount)
+                if discount_value < 0 or discount_value > 100:
+                    desturi('Error', "Discount must be between 0 and 100.")
+                    return
+                
+                # Update product quantity
+                Product.update_product(prodID, quantity=remaining_quantity)
+
+                # Create and save the transaction
                 transaction_obj = Transaction(
                     transactionID,
                     loggedInUserID,
-                    productIDInput.get(),
-                    quantityInput.get(),
-                    priceInput.get(),
-                    discountInput.get(),
+                    employeeName,
+                    product['name'],
+                    prodID,
+                    quantity_to_add,
+                    product['buying_price'],
+                    product['selling_price'],
+                    discount_value,
                     formatted_time
                 )
                 transaction_obj.create_transaction()
-                generate_table()
-                desturi("Success!", "Product Successfully Added")
 
-            productIDInput, quantityInput, discountInput, priceInput = generate_panel(edit_add_box, panel, add, columns, entity, selected_row=[])
+                # Update table and notify user
+                generate_table()
+                desturi("Success!", "Transaction Successfully Added")
+
+            productIDInput, quantityInput, discountInput = generate_panel(edit_add_box, panel, add, columns, entity, delete_transaction, adding_row)
+
             
     select_panel()
 
     CTkLabel(master=right_panel, text="Search product: ", text_color="grey").grid(row=2, column=0, sticky='n', pady=(5, 5))
 
-    get_product_panel =  CTkFrame(right_panel, width=240, height=250, fg_color="#c5c5c5")
+    get_product_panel =  CTkFrame(right_panel, width=240, height=250, fg_color="#e9e9e9")
     get_product_panel.grid(row=3, column=0, sticky='n', padx=(10, 10), pady=(0, 40))
 
         # Add an input field to the first row of get_product_panel
     input_field = CTkEntry(
                         get_product_panel, 
                         placeholder_text="Enter product name",
-                        width=260, 
+                        width=240, 
                         height=35, 
                         border_width=1, 
                         border_color="#e9e9e9", 
@@ -488,6 +579,9 @@ def transaction_screen(reinitialize_main_column2, desturi, main_column2, user_da
 
     # Function to copy the product ID to the clipboard when the label is clicked
     def copy_to_clipboard(prodID):
+        global adding_row
+        adding_row = [prodID, '', '']
+        select_panel(panel_manager.get_current_panel())
         r = Tk()
         r.withdraw()  # Hide the main window
         r.clipboard_clear()  # Clear the clipboard
@@ -495,32 +589,24 @@ def transaction_screen(reinitialize_main_column2, desturi, main_column2, user_da
         r.update()  # Keep the clipboard content after closing the window
         r.destroy()  # Close the Tkinter instance
 
-    def on_input_change(event):
-        for widget in scrollableProducts_panel.winfo_children():
-            widget.destroy()
-        
-        query = input_field.get()
-        if len(query) == 0:
-            return
-        
-        products_arr = Product.filter_products_as_Dict(query)
-        # Iterate through the products_arr and add labels to scrollableProducts_panel
+    def map_products(products_arr):
+         # Iterate through the products_arr and add labels to scrollableProducts_panel
         for i, product in enumerate(products_arr, start=1):
             # Create a formatted label for each product
             product_label = CTkLabel(scrollableProducts_panel,
                                      height=34,
                                      anchor='w', 
-                                     text=f"{i}.{product['name']}, ID: {product['prodID']} Price: {product['price']}", 
+                                     text=f"{i}.{product['name']}", 
                                      fg_color="#bfbdbd", 
                                      corner_radius=8,
-                                     width=250,
+                                     width=210,
                                      image=CTkImage(
                                         dark_image=Image.open("./images/main/clipboard.png"),
                                         light_image=Image.open("./images/main/clipboard.png"),
                                     ),
                                      compound="left"
                                      )
-            product_label.grid(row=i, column=0, padx=10, pady=5, sticky="w")
+            product_label.grid(row=i, column=0, padx=5, pady=5, sticky="w")
             product_label.grid_propagate(False)
 
             # Change cursor to pointer when hovering over the label
@@ -537,6 +623,19 @@ def transaction_screen(reinitialize_main_column2, desturi, main_column2, user_da
 
             product_label.bind("<Enter>", on_enter)
             product_label.bind("<Leave>", on_leave)
+    
+    products = Product.get_products_as_Dict()
+    map_products(products)
+
+
+    def on_input_change(event):
+        for widget in scrollableProducts_panel.winfo_children():
+            widget.destroy()
+        
+        query = input_field.get().strip()
+        
+        products_arr = Product.filter_products_as_Dict(query)
+        map_products(products_arr)
 
 
     # Bind the <<Modified>> event to the input field to detect changes

@@ -144,21 +144,22 @@ class User:
                 },
             )
 
-    def delete_user(id):
+    def delete_user(empID):
         conn = sqlite3.connect("./databases/users.db")
         curr = conn.cursor()
         with conn:
-            curr.execute("DELETE FROM users WHERE id=:id", {"id": id})
+            curr.execute("DELETE FROM users WHERE empID=:empID", {"empID": empID})
 
 class Product:
     # ?inventory?
     # "INSERT INTO products VALUES(:prodID,:name,:descripton,:quantity,:price,:image)",
-    def __init__(self, prodID, name, descripton, quantity, price) -> None:
+    def __init__(self, prodID, name, descripton, quantity, buying_price, selling_price) -> None:
         self.prodID = prodID
         self.name = name
         self.descripton = descripton
         self.quantity = quantity
-        self.price = price
+        self.buying_price = buying_price
+        self.selling_price = selling_price
         self.conn = sqlite3.connect("./databases/products.db")
         self.curr = self.conn.cursor()
         with self.conn:
@@ -169,7 +170,8 @@ class Product:
                     name TEXT,
                     descripton TEXT,
                     quantity INTEGER,
-                    price INTEGER
+                    buying_price INTEGER,
+                    selling_price INTEGER
                     )"""
             )
         self.conn.close()
@@ -182,13 +184,14 @@ class Product:
 
         with conn:  # add self. and delete above variables
             curr.execute(
-                "INSERT INTO products (prodID,name,descripton,quantity,price) VALUES(:prodID,:name,:descripton,:quantity,:price)",
+                "INSERT INTO products (prodID,name,descripton,quantity,buying_price, selling_price) VALUES(:prodID,:name,:descripton,:quantity,:buying_price,:selling_price)",
                 {
                     "prodID": self.prodID,
                     "name": self.name,
                     "descripton": self.descripton,
                     "quantity": self.quantity,
-                    "price": self.price,
+                    "buying_price": self.buying_price,
+                    "selling_price": self.selling_price,
                 },
             )
             # shutil.copy(self.image, "./images/products/" + hash_value + "." + ext)
@@ -200,6 +203,15 @@ class Product:
             curr.execute("SELECT * FROM products")
             return curr.fetchall()
         
+    def get_specific_product(podID):
+        conn = sqlite3.connect("./databases/products.db")
+        conn.row_factory = sqlite3.Row
+        curr = conn.cursor()
+        with conn:
+            curr.execute("SELECT * FROM products WHERE prodID = ?", (podID,))
+            row = curr.fetchone()  # Use fetchone to get a single row
+            return dict(row) if row else None  # Convert to dict and handle if no row is found
+  
     def get_products_as_Dict():
         conn = sqlite3.connect("./databases/products.db")
         conn.row_factory = sqlite3.Row
@@ -224,38 +236,60 @@ class Product:
 
 
 
-    def update_product(prodID, name, descripton, quantity, price, image="PATCH"):
+    def update_product(prodID, name=None, description=None, quantity=None, buying_price=None, selling_price=None):
         conn = sqlite3.connect("./databases/products.db")
         curr = conn.cursor()
-        with conn:
-            curr.execute(
-                "UPDATE products SET prodID=:prodID,name=:name,descripton=:descripton,quantity=:quantity,price=:price WHERE prodID=:prodID",
-                {
-                    "prodID": prodID,
-                    "name": name,
-                    "descripton": descripton,
-                    "quantity": quantity,
-                    "price": price,
-                    # "image": image, PATCH nilisahau kuchukua edited picture
-                },
-            )
+        
+        # Start building the dynamic query
+        query = "UPDATE products SET prodID=:prodID, "
+        updates = []
+        params = {}
 
-    def delete_product(id):
+        # Ensure prodID is always part of the WHERE clause
+        params["prodID"] = prodID
+        # Add fields to update only if they are not None
+        if name is not None:
+            updates.append("name=:name")
+            params["name"] = name
+        if description is not None:
+            updates.append("descripton=:descripton")
+            params["descripton"] = description
+        if quantity is not None:
+            updates.append("quantity=:quantity")
+            params["quantity"] = quantity
+        if buying_price is not None:
+            updates.append("buying_price=:buying_price")
+            params["buying_price"] = buying_price
+        if selling_price is not None:
+            updates.append("selling_price=:selling_price")
+            params["selling_price"] = selling_price
+
+        # Join the updates into the query
+        query += ", ".join(updates) + " WHERE prodID=:prodID"
+
+        # Execute the query
+        with conn:
+            curr.execute(query, params)
+
+    def delete_product(prodID):
         conn = sqlite3.connect("./databases/products.db")
         curr = conn.cursor()
         with conn:
-            curr.execute("DELETE FROM products WHERE id = :id", {"id": id})
+            curr.execute("DELETE FROM products WHERE prodID = :prodID", {"prodID": prodID})
 
 class Transaction:
     # ?receipt? - show transcations made by a person at a time
     # ?total cost? of receipt
     # the price is already there or else there are discounts
-    def __init__(self, transactionID, madeByEmpID, prodID, quantity, price, discount, time) -> None:
+    def __init__(self, transactionID, madeByEmpID, empName, prodName, prodID, quantity, buying_price, selling_price, discount, time) -> None:
         self.transactionID = transactionID  # edit records from tbl
         self.empID = madeByEmpID
+        self.empName = empName
         self.prodID = prodID
+        self.prodName = prodName
         self.quantity = quantity
-        self.price = price
+        self.buying_price = buying_price
+        self.selling_price = selling_price
         self.discount = discount
         self.time = time
         self.conn = sqlite3.connect("./databases/transactions.db")
@@ -266,7 +300,9 @@ class Transaction:
                         id INTEGER PRIMARY KEY AUTOINCREMENT,
                         transactionID INTEGER,
                         empID INTEGER,
+                        empName TEXT,
                         prodID INTEGER,
+                        prodName TEXT,
                         quantity INTEGER,
                         price INTEGER,
                         discount INTEGER,
@@ -279,20 +315,18 @@ class Transaction:
         # receipt id ndio itahold all transactions made at the same time na ita act ka receipt
         conn = sqlite3.connect("./databases/transactions.db")
         curr = conn.cursor()
-        idHotfix = 0
-        with conn:
-            curr.execute("SELECT * FROM transactions")
-            idHotfix = len(curr.fetchall())
-        idHotfix += 1
         with conn:
             curr.execute(
-                "INSERT INTO transactions(transactionID,empID,prodID,quantity,price,discount,time) VALUES(:transactionID,:empID,:prodID,:quantity,:price,:discount,:time)",
+                "INSERT INTO transactions(transactionID,empID,empName,prodID,prodName,quantity,buying_price,selling_price,discount,time) VALUES(:transactionID,:empID,:empName,:prodID,:prodName,:quantity,:buying_price,:selling_price,:discount,:time)",
                 {
                     "transactionID" : self.transactionID,
                     "empID": self.empID,
+                    "empName": self.empName,
                     "prodID": self.prodID,
+                    "prodName": self.prodName,
                     "quantity": self.quantity,
-                    "price": self.price,
+                    "buying_price": self.buying_price,
+                    "selling_price": self.selling_price,
                     "discount": self.discount,
                     "time": self.time,
                 },
@@ -302,7 +336,7 @@ class Transaction:
         conn = sqlite3.connect("./databases/transactions.db")
         curr = conn.cursor()
         with conn:
-            return curr.execute("SELECT * FROM transactions").fetchall()
+            return curr.execute("SELECT transactionID, empName, prodName, quantity, buying_price, selling_price, discount, time FROM transactions").fetchall()
         
     def get_transcations_as_Dict():
         conn = sqlite3.connect("./databases/transactions.db")
@@ -315,28 +349,53 @@ class Transaction:
             # Convert rows to a list of dictionaries
             return [dict(row) for row in rows]
 
-    def update_transaction(transactionID, quantity, discount, price
+    def update_transaction(transactionID, quantity, discount
     ) -> None:
         conn = sqlite3.connect("./databases/transactions.db")
         curr = conn.cursor()
         with conn:
             curr.execute(
-                " UPDATE transactions  SET quantity=:quantity,discount=:discount,price=:price WHERE transactionID = :transactionID",
+                " UPDATE transactions  SET quantity=:quantity,discount=:discount WHERE transactionID = :transactionID",
                 {
                     "transactionID":transactionID,
                     "quantity": quantity,
-                    "discount": discount,
-                    "price": price
+                    "discount": discount
                 },
             )
+    def get_top_5_products_based_on_transactions():
+        conn = sqlite3.connect("./databases/transactions.db")
+        curr = conn.cursor()
 
-    def delete_transaction(id):
+        with conn:
+            # SQL query to calculate profit grouped by prodID
+            curr.execute("""
+                SELECT 
+                    prodName, 
+                    SUM((selling_price - buying_price) * quantity) AS total_profit
+                FROM transactions
+                GROUP BY prodName
+                ORDER BY total_profit DESC
+                LIMIT 5
+            """)
+
+            # Fetch the results
+            top_products = curr.fetchall()
+
+        # Close the connection
+        conn.close()
+
+        # Return the top 5 products as a dictionary
+        return {row[0]: row[1] for row in top_products}
+
+
+
+    def delete_transaction(transactionID):
         conn = sqlite3.connect("./databases/transactions.db")
         curr = conn.cursor()
         with conn:
             curr.execute(
-                "DELETE FROM transactions WHERE id = :id",
-                {"id": id},
+                "DELETE FROM transactions WHERE transactionID = :transactionID",
+                {"transactionID": transactionID},
             )
             # print(curr.fetchall())
 

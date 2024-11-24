@@ -1,9 +1,8 @@
-from customtkinter import CTk, CTkLabel, CTkEntry, CTkButton
-from tkinter import Toplevel, Label, Entry, Button, messagebox, StringVar, ttk
+from customtkinter import CTkLabel, CTkEntry, CTkButton, CTkFrame
+from tkinter import StringVar
 
 
-def generate_panel(parent, type, command, columns, entity, selected_row=[]):
-
+def generate_panel(parent, type, command, columns, entity, delete_command, selected_row=[]):
     CTkLabel(
         parent, 
         text=f"Add {entity}" if type == "add" else f"Edit {entity}", 
@@ -18,7 +17,6 @@ def generate_panel(parent, type, command, columns, entity, selected_row=[]):
 
     row_index = 0
     for index, val in enumerate(columns):
-        print(val)
         label = CTkLabel(
                 master=parent, 
                 text=f"{val}: ", 
@@ -29,7 +27,7 @@ def generate_panel(parent, type, command, columns, entity, selected_row=[]):
         label.grid(row=row_index + 1, column=0, sticky='w', pady=(10, 0), padx=10)
         input_field = CTkEntry(
                 parent, 
-                textvariable=StringVar(value=selected_row[index] if len(selected_row) > 1 else ''), 
+                textvariable=StringVar(value=selected_row[index] if len(selected_row) > 0 else ''), 
                 width=250, 
                 height=35, 
                 border_width=1, 
@@ -43,11 +41,28 @@ def generate_panel(parent, type, command, columns, entity, selected_row=[]):
         input_fields[val] = input_field
         row_index += 2  
 
+    frame = CTkFrame(parent, fg_color='transparent')  # Create a frame within the parent
+    frame.grid(row=(len(columns) * 2) + 1, column=0, columnspan=2, pady=(20, 20), padx=(10, 10))
 
+    # Add the "Update" or "Add" button to the frame
+    CTkButton(
+        frame,
+        text="Update" if type == 'edit' else 'Add',
+        command=command,
+        corner_radius=8,
+        height=30,
+        width=100,
+    ).grid(row=0, column=0, padx=(5, 5))  # Use grid within the frame
 
-
-    CTkButton(parent, text="Update" if type=='edit' else 'Add', command=command, corner_radius=1000, height=40).grid(
-        row=(len(columns) * 2) + 1, column=0, columnspan=2, pady=(20, 20), padx=(15, 15)
-    )
+    CTkButton(
+        frame,
+        text="Delete",
+        command=delete_command,  # Replace with the appropriate delete command function
+        corner_radius=8,
+        height=30,
+        width=100,
+        fg_color='white',  # Default background color
+        text_color='grey',  # Default text color
+    ).grid(row=0, column=1, padx=(5, 5))  # Adjust padding for spacing
 
     return tuple(input_fields.get(field) for field in columns if field != None)

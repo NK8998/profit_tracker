@@ -26,6 +26,14 @@ from screens.products import product_screen
 from screens.transactions import transaction_screen
 # 
 
+# for mock data
+import random
+from datetime import datetime, timedelta
+from nanoid import generate
+# 
+
+
+
 
 def main_screen(user_data):
     print(user_data)
@@ -82,22 +90,84 @@ def main_screen(user_data):
             return True
         return False
 
-    def desturi(title, message):  # hii ina act ka message box
+    def desturi(title, message):
         onTop = CTk()
         onTop.lift()
-        onTop.title(title)
-        onTop.iconbitmap("./images/main/profit.ico")
         onTop.attributes("-topmost", True)
         onTop.bell()
-        if "UI" == "UI":
-            lbl = CTkLabel(
-                onTop,
-                text=message,
-                font=("sans-serif", 30, "bold"),
-                bg_color="red",
-            )
-            lbl.pack(padx=10, pady=10)
+        
+        # Remove default title bar and set a fixed size
+        onTop.overrideredirect(True)
+        onTop.geometry("400x100")  # Max height is 100px
+        onTop.config(bg="white")  # Set the background to white
+
+        # Calculate top-center position
+        screen_width = onTop.winfo_screenwidth()
+        window_width = 400
+        x_position = ((screen_width - window_width) // 2) + 200  # Center horizontally
+        y_position = 100  # Slight margin from the top
+        onTop.geometry(f"{window_width}x100+{x_position}+{y_position}")
+        
+        # Create a frame to mimic rounded corners for the whole window
+        outer_frame = CTkFrame(
+            onTop, 
+            fg_color="#3b3f46", 
+            corner_radius=0
+
+        )
+        outer_frame.pack(expand=True, fill=BOTH)
+        
+        # Create a custom title bar
+        title_bar = CTkFrame(
+            outer_frame, 
+            bg_color="transparent",  # Dark background for the title bar
+            fg_color="#494d56", 
+            height=30, 
+            corner_radius=0
+        )
+        title_bar.pack(side=TOP, fill=X)
+        
+        # Add a title label to the custom title bar
+        title_label = CTkLabel(
+            title_bar,
+            text=title,
+            font=("Helvetica", 12, "bold"),
+            text_color="white",  # White text for the title
+            anchor='w',
+        )
+        title_label.pack(side=LEFT, padx=10)
+
+        # Add a close button to the custom title bar
+        close_button = CTkButton(
+            title_bar,
+            text="X",
+            command=onTop.destroy,
+            font=("Helvetica", 12, "bold"),
+            width=30,
+            height=20,
+            fg_color="#ff4d4d",  # Red for close button
+            hover_color="#e63939",  # Darker red on hover
+        )
+        close_button.pack(side=RIGHT, padx=5, pady=5)
+        
+        # Add the message text
+        message_label = CTkLabel(
+            outer_frame,
+            text=message,
+            font=("Helvetica", 14),  # Slightly smaller font
+            text_color="white",  # Gray text color
+            bg_color="#3b3f46",  # White background
+            anchor=CENTER,
+            corner_radius=0
+        )
+        message_label.pack(expand=True, pady=(5, 10))  # Center it vertically with padding
+        
+        # Auto-close after 2.5 seconds
+        onTop.after(2500, onTop.destroy)
         onTop.mainloop()
+
+
+
 
     def show_dashboard():
         dashboard_screen(reinitialize_main_column2, main_column2, user_data)
@@ -488,23 +558,44 @@ def create_table(name):
     curr = conn.cursor()
     with conn:  # creating ADMIN account in the database
         curr.execute(
-            f""" CREATE TABLE IF NOT EXISTS {name} (
+              """ CREATE TABLE IF NOT EXISTS transactions (
                         id INTEGER PRIMARY KEY AUTOINCREMENT,
                         transactionID INTEGER,
                         empID INTEGER,
+                        empName TEXT,
                         prodID INTEGER,
+                        prodName TEXT,
                         quantity INTEGER,
-                        price INTEGER,
+                        buying_price INTEGER,
+                        selling_price INTEGER,
                         discount INTEGER,
                         time NUMERIC
-                        )
-            """
+                        )"""
         )
     conn.close()
 
+def create_table_prod():
+    conn = sqlite3.connect("./databases/products.db")
+    curr = conn.cursor()
+    with conn:  # creating ADMIN account in the database
+        curr.execute(
+            """ CREATE TABLE IF NOT EXISTS products(
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    prodID INTEGER UNIQUE,
+                    name TEXT,
+                    descripton TEXT,
+                    quantity INTEGER,
+                    buying_price INTEGER,
+                    selling_price INTEGER
+                    )"""
+            )
+    
 def databases_initialisations():
-    # remove_table_from_db('transactions')
-    # create_table('transactions')
+    remove_table_from_db('transactions')
+    remove_table_from_db('products')
+    create_table('transactions')
+    create_table_prod()
+
     conn = sqlite3.connect("./databases/users.db")
     curr = conn.cursor()
     with conn:  # creating ADMIN account in the database
@@ -798,6 +889,75 @@ def _DEBUG_():
                 )
 
 
+def mock_data():
+
+    def products_mock():
+        # Connect to the database or create it if it doesn't exist
+        conn = sqlite3.connect("./databases/products.db")
+        curr = conn.cursor()
+
+        # Generate mock data
+        rows = []
+        for i in range(20):
+            prodID = generate(size=5)  # Generate a random product ID
+            name = f"Product_{i + 1}"  # Generate a unique product name
+            descripton = f"Description for {name}"
+            quantity = random.randint(10, 50)  # Random stock quantity
+            buying_price = random.randint(10, 200)  # Random buying price
+            selling_price = buying_price + random.randint(1, 100)  # Random selling price higher than buying price
+            rows.append((prodID, name, descripton, quantity, buying_price, selling_price))
+
+        # Insert rows into the products table
+        curr.executemany("""
+            INSERT INTO products (prodID, name, descripton, quantity, buying_price, selling_price) 
+            VALUES (?, ?, ?, ?, ?, ?)
+        """, rows)
+
+        # Commit changes and close the connection
+        conn.commit()
+        conn.close()
+
+        # Return the mock data for use in transactions
+        return rows
+
+    def transactions_mock(products):
+        # Connect to the database or create it if it doesn't exist
+        conn = sqlite3.connect("./databases/transactions.db")
+        curr = conn.cursor()
+        start_date = datetime(2024, 1, 1)  # Starting date
+
+        # Generate transactions based on the products
+        rows = []
+        for i in range(20):
+            product = random.choice(products)  # Select a random product
+            prodID, prodName = product[0], product[1]  # Use prodID and prodName from products
+            transactionID = random.randint(1000, 9999)
+            empID = generate(size=7)  # Generate employee ID
+            empName = f"Employee_{random.randint(1, 10)}"
+            quantity = random.randint(1, 5)  # Random transaction quantity (less than stock)
+            buying_price = product[4]  # Use the product's selling price
+            selling_price = product[5]
+            discount = random.randint(0, 50)  # Random discount
+            time = (start_date + timedelta(days=random.randint(0, 41))).strftime("%Y-%m-%d %H:%M:%S")
+            rows.append((transactionID, empID, empName, prodID, prodName, quantity, buying_price, selling_price, discount, time))
+
+        # Insert rows into the transactions table
+        curr.executemany("""
+            INSERT INTO transactions (transactionID, empID, empName, prodID, prodName, quantity, buying_price, selling_price, discount, time) 
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """, rows)
+
+        # Commit changes and close the connection
+        conn.commit()
+        conn.close()
+    
+     # Step 1: Populate the products table and get the mock data
+    products = products_mock()
+
+    # Step 2: Use the products data to populate the transactions table
+    transactions_mock(products)
+
+
 if __name__ == "__main__":
     databases_initialisations()
     # _DEBUG_()
@@ -807,7 +967,7 @@ if __name__ == "__main__":
     #'IYU2SF7'
 
     user_obj = {'id': 1, 'empID': 'IYU2SF7', 'email': 'admin@gmail.com', 'fname': 'admin', 'lname': 'Overseer', 'salary': 400000, 'nationalID': 987456, 'password': '12378956', 'isAdmin': 1}
-
+    mock_data()
     # if user_obj:
     main_screen(user_obj)
     # User.show_user(35)

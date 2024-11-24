@@ -329,7 +329,18 @@ def user_screen(reinitialize_main_column2, desturi, main_column2):
 
         edit_add_box.grid_propagate(False)
 
+        def delete_user():
+            if len(selected_row) == 0:
+                desturi("...", "Please select a user first")
+                return
+            user_id = selected_row[1]
+            User.delete_user(user_id)
+            generate_table()
+            desturi("Success", "User successfully deleted")
+
+
         def select_panel(panel = 'edit'):
+            
             entity = 'User'
             columns = ["email", "First Name", "Last Name", "Salary", "National ID", "Password"]
             panel_manager.set_current_panel(panel)
@@ -341,6 +352,31 @@ def user_screen(reinitialize_main_column2, desturi, main_column2):
                 adjusted_selected_row = selected_row[2:]
 
                 def update():
+                    if len(selected_row) == 0:
+                        desturi("Error", "No user selected for editing!")
+                        return
+
+                    # Check for missing fields
+                    if not emailInput.get().strip():
+                        desturi("Error", "Email field is required!")
+                        return
+                    if not fnameInput.get().strip():
+                        desturi("Error", "First Name field is required!")
+                        return
+                    if not lnameInput.get().strip():
+                        desturi("Error", "Last Name field is required!")
+                        return
+                    if not salaryInput.get().strip():
+                        desturi("Error", "Salary field is required!")
+                        return
+                    if not natIDInput.get().strip():
+                        desturi("Error", "National ID field is required!")
+                        return
+                    if not pwInput.get().strip():
+                        desturi("Error", "Password field is required!")
+                        return
+
+                    # Proceed with updating the user
                     empID = selected_row[1]
                     User.update_user(
                         empID,
@@ -352,11 +388,36 @@ def user_screen(reinitialize_main_column2, desturi, main_column2):
                         pwInput.get()
                     )
                     generate_table()
-                    desturi("User edited", "User successfully edited")
-                emailInput, fnameInput, lnameInput, salaryInput, natIDInput, pwInput = generate_panel(edit_add_box, panel, update, columns, entity, adjusted_selected_row)
+                    desturi("User Edited", "User successfully edited")
+
+                emailInput, fnameInput, lnameInput, salaryInput, natIDInput, pwInput = generate_panel(
+                    edit_add_box, panel, update, columns, entity, delete_user, adjusted_selected_row
+                )
+
 
             elif panel == 'add':
                 def add():
+                    # Check for missing fields
+                    if not emailInput.get().strip():
+                        desturi("Error", "Email field is required!")
+                        return
+                    if not fnameInput.get().strip():
+                        desturi("Error", "First Name field is required!")
+                        return
+                    if not lnameInput.get().strip():
+                        desturi("Error", "Last Name field is required!")
+                        return
+                    if not salaryInput.get().strip():
+                        desturi("Error", "Salary field is required!")
+                        return
+                    if not natIDInput.get().strip():
+                        desturi("Error", "National ID field is required!")
+                        return
+                    if not pwInput.get().strip():
+                        desturi("Error", "Password field is required!")
+                        return
+
+                    # Proceed if all fields are valid
                     isAdmin = 0
                     empID = generate(size=7)
                     user_obj = User(
@@ -373,6 +434,9 @@ def user_screen(reinitialize_main_column2, desturi, main_column2):
                     generate_table()
                     desturi("Success!", "User Successfully Added")
 
-                emailInput, fnameInput, lnameInput, salaryInput, natIDInput, pwInput = generate_panel(edit_add_box, panel, add, columns, entity, selected_row=[])
+                emailInput, fnameInput, lnameInput, salaryInput, natIDInput, pwInput = generate_panel(
+                    edit_add_box, panel, add, columns, entity, delete_user, selected_row=[]
+                )
+
                 
         select_panel()
