@@ -32,6 +32,7 @@ from datetime import datetime, timedelta
 from nanoid import generate
 # 
 
+from screeninfo import get_monitors
 
 
 
@@ -82,6 +83,8 @@ def main_screen(user_data):
     main_column2.columnconfigure(index=0, weight=1)
     main_column2.rowconfigure(index=0, weight=1)
 
+
+
     def reinitialize_main_column2(target_screen):
         if screen_manager.set_current_screen(target_screen)  == True:
             print('I ran')
@@ -90,7 +93,7 @@ def main_screen(user_data):
             return True
         return False
 
-    def desturi(title, message):
+    def desturi(title, message, isloggingOut=False):
         onTop = CTk()
         onTop.lift()
         onTop.attributes("-topmost", True)
@@ -101,12 +104,14 @@ def main_screen(user_data):
         onTop.geometry("400x100")  # Max height is 100px
         onTop.config(bg="white")  # Set the background to white
 
+        height = 150 if isloggingOut else 100
+
         # Calculate top-center position
         screen_width = onTop.winfo_screenwidth()
         window_width = 400
         x_position = ((screen_width - window_width) // 2) + 200  # Center horizontally
         y_position = 100  # Slight margin from the top
-        onTop.geometry(f"{window_width}x100+{x_position}+{y_position}")
+        onTop.geometry(f"{window_width}x{height}+{x_position}+{y_position}")
         
         # Create a frame to mimic rounded corners for the whole window
         outer_frame = CTkFrame(
@@ -161,13 +166,31 @@ def main_screen(user_data):
             corner_radius=0
         )
         message_label.pack(expand=True, pady=(5, 10))  # Center it vertically with padding
-        
-        # Auto-close after 2.5 seconds
-        onTop.after(2500, onTop.destroy)
+
+        def logout_confirm():
+            window_obj.destroy()
+            onTop.destroy()
+            entry_loop()
+
+        if isloggingOut == True:
+            logout_button = CTkButton(
+                outer_frame,
+                text="Logout",
+                command=logout_confirm,  # You can replace this with your logout function
+                font=("Helvetica", 12, "bold"),
+                width=120,
+                height=30,
+                fg_color="#ff4d4d",  # Red for logout button
+                text_color="white",  # White text
+                hover_color="#e63939",  # Darker red on hover
+            )
+            logout_button.pack(side=BOTTOM, pady=10)
+        elif isloggingOut == False:
+            onTop.after(2500, onTop.destroy)
         onTop.mainloop()
 
-
-
+    def logout():
+        desturi('loging out', 'Are you sure you want to log out', isloggingOut=True)
 
     def show_dashboard():
         dashboard_screen(reinitialize_main_column2, main_column2, user_data)
@@ -308,7 +331,7 @@ def main_screen(user_data):
         logout_btn = CTkButton(
             master=main_column1,
             text=" Exit",
-            command=show_transaction,
+            command=logout,
             font=("sans-serif", 14, "bold"),
             corner_radius=6,
             hover_color="#bde2ff",
@@ -339,8 +362,6 @@ def main_screen(user_data):
 
 
 def login_screen():  # returns user ID of the logged-in 
-    
-
     login_screen_obj = CTk()
     login_screen_obj.title("Login")
     login_screen_obj.iconbitmap("./images/main/profit.ico")
@@ -355,19 +376,81 @@ def login_screen():  # returns user ID of the logged-in
         user_data = User.verify_user(email, password) 
         print(user_data)
         if user_data == False:
-            tempWindow = CTk()
-            tempWindow.title("Wrong Password")
-            tempWindow.iconbitmap("./images/main/profit.ico")
-            tempWindow.bell()
-            if "UI" == "UI":
-                wp = CTkLabel(
-                    tempWindow,
-                    text="You have entered the wrong login details!",
-                    font=("sans-serif", 30, "bold"),
-                    bg_color="red",
-                )
-                wp.pack(padx=10, pady=10)
-            tempWindow.mainloop()
+            onTop = CTk()
+            onTop.lift()
+            onTop.attributes("-topmost", True)
+            onTop.bell()
+            
+            # Remove default title bar and set a fixed size
+            onTop.overrideredirect(True)
+            onTop.geometry("400x100")  # Max height is 100px
+            onTop.config(bg="white")  # Set the background to white
+
+            height = 100
+
+            # Calculate top-center position
+            screen_width = onTop.winfo_screenwidth()
+            window_width = 400
+            x_position = ((screen_width - window_width) // 2) + 200  # Center horizontally
+            y_position = 100  # Slight margin from the top
+            onTop.geometry(f"{window_width}x{height}+{x_position}+{y_position}")
+            
+            # Create a frame to mimic rounded corners for the whole window
+            outer_frame = CTkFrame(
+                onTop, 
+                fg_color="#3b3f46", 
+                corner_radius=0
+
+            )
+            outer_frame.pack(expand=True, fill=BOTH)
+            
+            # Create a custom title bar
+            title_bar = CTkFrame(
+                outer_frame, 
+                bg_color="transparent",  # Dark background for the title bar
+                fg_color="#494d56", 
+                height=30, 
+                corner_radius=0
+            )
+            title_bar.pack(side=TOP, fill=X)
+            
+            # Add a title label to the custom title bar
+            title_label = CTkLabel(
+                title_bar,
+                text='Error',
+                font=("Helvetica", 12, "bold"),
+                text_color="white",  # White text for the title
+                anchor='w',
+            )
+            title_label.pack(side=LEFT, padx=10)
+
+            # Add a close button to the custom title bar
+            close_button = CTkButton(
+                title_bar,
+                text="X",
+                command=onTop.destroy,
+                font=("Helvetica", 12, "bold"),
+                width=30,
+                height=20,
+                fg_color="#ff4d4d",  # Red for close button
+                hover_color="#e63939",  # Darker red on hover
+            )
+            close_button.pack(side=RIGHT, padx=5, pady=5)
+            
+            # Add the message text
+            message_label = CTkLabel(
+                outer_frame,
+                text='You have entered the wrong credentials',
+                font=("Helvetica", 14),  # Slightly smaller font
+                text_color="white",  # Gray text color
+                bg_color="#3b3f46",  # White background
+                anchor=CENTER,
+                corner_radius=0
+            )
+            message_label.pack(expand=True, pady=(5, 10))  # Center it vertically with padding
+
+            onTop.after(2500, onTop.destroy)
+            onTop.mainloop()
         else:
             user_obj = user_data
             login_screen_obj.destroy()
@@ -380,11 +463,14 @@ def login_screen():  # returns user ID of the logged-in
         window_width = 1300
         window_height = 700
 
-        screen_width = login_screen_obj.winfo_screenwidth()
-        screen_height = login_screen_obj.winfo_screenheight()
+         # Get the actual screen width and height
+        monitors = get_monitors()
+        primary_monitor = monitors[0]  # Assuming the primary monitor is at index 0
+        screen_width = primary_monitor.width
+        screen_height = primary_monitor.height
 
-        x_coordinate = (screen_width // 2) - (window_width // 2)
-        y_coordinate = (screen_height // 2) - (window_height // 2)
+        x_coordinate = (screen_width // 2) - window_width // 2
+        y_coordinate = (screen_height // 2) - window_height // 2
 
         login_screen_obj.wm_geometry(f"{window_width}x{window_height}+{x_coordinate}+{y_coordinate}")
         login_screen_obj.wm_maxsize(1400, 700)
@@ -958,18 +1044,14 @@ def mock_data():
     transactions_mock(products)
 
 
-if __name__ == "__main__":
+def entry_loop():
     databases_initialisations()
-    # _DEBUG_()
-    # print()  # returns user who logged in
 
-    # user_obj = login_screen()
-    #'IYU2SF7'
-
-    user_obj = {'id': 1, 'empID': 'IYU2SF7', 'email': 'admin@gmail.com', 'fname': 'admin', 'lname': 'Overseer', 'salary': 400000, 'nationalID': 987456, 'password': '12378956', 'isAdmin': 1}
+    user_obj = login_screen()
+    # user_obj = {'id': 1, 'empID': 'IYU2SF7', 'email': 'admin@gmail.com', 'fname': 'admin', 'lname': 'Overseer', 'salary': 400000, 'nationalID': 987456, 'password': '12378956', 'isAdmin': 1}
     mock_data()
-    # if user_obj:
-    main_screen(user_obj)
-    # User.show_user(35)
+    if user_obj:
+        main_screen(user_obj)
 
-    # _DEBUG_()
+
+entry_loop()
