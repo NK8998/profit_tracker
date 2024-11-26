@@ -638,7 +638,6 @@ def remove_table_from_db(name):
         )
     conn.close()
 
-
 def create_table(name):
     conn = sqlite3.connect(f"./databases/{name}.db")
     curr = conn.cursor()
@@ -659,6 +658,7 @@ def create_table(name):
                         )"""
         )
     conn.close()
+
 
 def create_table_prod():
     conn = sqlite3.connect("./databases/products.db")
@@ -711,270 +711,7 @@ def databases_initialisations():
     conn = sqlite3.connect("./databases/transactions.db")
     conn.close()
 
-def _DEBUG_():
-    if "users" == "users":
-        conn = sqlite3.connect("./databases/users.db")
-        curr = conn.cursor()
-
-        def createTable():
-            with conn:
-                curr.execute(
-                    """ CREATE TABLE IF NOT EXISTS users(
-                            id INTEGER PRIMARY KEY AUTOINCREMENT,
-                            empID INTEGER UNIQUE,
-                            fname TEXT,
-                            lname TEXT,
-                            salary INTEGER,
-                            nationalID NUMERIC
-                            password TEXT,
-                            isAdmin BLOB
-                            )"""
-                )
-
-        def insert(empID, fname, lname, salary, nationalID, password, isAdmin):
-            with conn:  # add self. and delete above variables
-                curr.execute(
-                    "INSERT INTO users(empID,fname,lname,salary,nationalID,isAdmin) VALUES(:empID,:fname,:lname,:salary,:nationalID,:isAdmin)",
-                    {
-                        "empID": empID,
-                        "fname": fname,
-                        "lname": lname,
-                        "salary": salary,
-                        "nationalID": nationalID,
-                        "password": password,
-                        "isAdmin": isAdmin,
-                    },
-                )
-
-        def read():
-            curr.execute("SELECT * FROM users")
-            for line in curr.fetchall():
-                # print(line)
-                pass
-
-        def update(id=-1):
-            with conn:
-                curr.execute("UPDATE users SET empID=669 WHERE id=:id", {"id": id})
-
-        def delete(id=-1):
-            with conn:
-                curr.execute("DELETE FROM users WHERE id=:id", {"id": id})
-
-        def misc(option="DELETEALL"):
-            if option == "DELETEALL":
-                with conn:
-                    curr.execute("DELETE FROM users")
-            if 0:
-                # print(curr.execute("SELECT * FROM users").arraysize)
-                pass
-
-            if "0" == "schema":
-                curr.execute("SELECT name FROM sqlite_master WHERE type='table';")
-                tables = curr.fetchall()
-
-                print("Tables in the database:")
-                for table in tables:
-                    print(table[0])
-
-                for table in tables:
-                    table_name = table[0]
-                    print(f"\nData from table '{table_name}':")
-
-                    curr.execute(f"PRAGMA table_info('{table_name}');")
-                    columns = curr.fetchall()
-
-                    column_names = []
-                    primary_keys = set()
-
-                    for column in columns:
-                        (
-                            column_id,
-                            column_name,
-                            column_type,
-                            not_null,
-                            default_value,
-                            primary_key,
-                        ) = column
-                        column_names.append(column_name)
-                        if primary_key:
-                            primary_keys.add(column_name)
-
-                    curr.execute(f"SELECT * FROM '{table_name}';")
-                    rows = curr.fetchall()
-
-                    header = " | ".join(column_names)
-                    print(header)
-
-                    for row in rows:
-                        formatted_row = []
-                        for column_name, value in zip(column_names, row):
-                            if column_name in primary_keys:
-                                formatted_row.append(
-                                    f" {value}"
-                                )  # Indicate primary key values
-                            else:
-                                formatted_row.append(str(value))
-                        print(" | ".join(formatted_row))
-
-        createTable()
-        # read()
-        # misc()
-        # insert(1,"Admin","Istrator",100000,12378956,"pass123", True)
-        # insert(23, "Lina", "Khan", 75000, 123456, "mypassword", True)
-        # insert(89, "Sam", "Lee", 65000, 987654, "securepass", False)
-        # insert(45, "Maya", "Patel", 80000, 654321, "helloWorld!", True)
-        # misc("DELETEALL")
-        # update(7)
-        # delete(7)
-        read()
-
-    if "products" == "products":
-        conn = sqlite3.connect("./databases/products.db")
-        curr = conn.cursor()
-
-        def createTable():
-            with conn:
-                curr.execute(
-                    """ CREATE TABLE IF NOT EXISTS products(
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    prodID INTEGER UNIQUE,
-                    name TEXT,
-                    descripton TEXT,
-                    quantity INTEGER,
-                    price INTEGER,
-                    image TEXT
-                    )"""
-                )
-
-        def insert(prodID, name, descripton, quantity, price, image):
-            hash_value = hashlib.sha256(b"GrOuP 9").hexdigest()
-            ext = image.split("/")[5].split(".")[-1]
-
-            with conn:  # add self. and delete above variables
-                curr.execute(
-                    "INSERT INTO products (prodID,name,descripton,quantity,price,image) VALUES(:prodID,:name,:descripton,:quantity,:price,:image)",
-                    {
-                        "prodID": prodID,
-                        "name": name,
-                        "descripton": descripton,
-                        "quantity": quantity,
-                        "price": price,
-                        "image": image,
-                    },
-                )
-                shutil.copy(image, "./images/products/" + hash_value + "." + ext)
-
-        def read():
-            print("*****************")
-            curr.execute("SELECT * FROM products")
-            for line in curr.fetchall():
-                print(line)
-            print("*****************")
-
-        def delete(id):
-            with conn:
-                curr.execute("DELETE FROM products WHERE id = :id", {"id": id})
-
-        if 0:
-            with conn:
-                curr.execute("DELETE FROM products")
-
-        createTable()
-        # read()
-        # insert(
-        #     5522,
-        #     "Roba",
-        #     "Bato",
-        #     50000,
-        #     223,
-        #     "C:/Users/Roberrrto/Pictures/Screenshots/Screenshot 2024-10-06 143800.png",
-        # )
-        # insert(
-        #     2566,
-        #     "jaba",
-        #     "babab",
-        #     50000,
-        #     223,
-        #     "C:/Users/Roberrrto/Pictures/Screenshots/Screenshot 2024-10-06 143800.png",
-        # )
-        # insert(
-        #     45853,
-        #     "dwdwd",
-        #     "BWWFWQFEWFato",
-        #     50000,
-        #     223,
-        #     "C:/Users/Roberrrto/Pictures/Screenshots/Screenshot 2024-10-06 143800.png",
-        # )
-        # insert(
-        #     54823,
-        #     "EWEWRGRWT",
-        #     "BFEFEGFEWGEato",
-        #     50000,
-        #     223,
-        #     "C:/Users/Roberrrto/Pictures/Screenshots/Screenshot 2024-10-06 143800.png",
-        # )
-
-        # read()
-        # delete(24)
-
-    if "transactions" == "transactions":
-        conn = sqlite3.connect("./databases/transactions.db")
-        curr = conn.cursor()
-        if 1:
-            with conn:
-                curr.execute(
-                    """ CREATE TABLE IF NOT EXISTS transactions (
-                        id INTEGER PRIMARY KEY AUTOINCREMENT,
-                        receiptID INTEGER,
-                        empID INTEGER,
-                        prodID INTEGER,
-                        quantity INTEGER,
-                        discount INTEGER,
-                        time NUMERIC
-                        )"""
-                )
-
-        if 0:
-            idHotfix = 0
-            with conn:
-                curr.execute("SELECT * FROM transactions")
-                idHotfix = len(curr.fetchall())
-            idHotfix += 1
-
-            receiptID = 47
-            empID = 54
-            prodID = 35
-            quantity = 69
-            discount = 1
-            time = datetime.datetime(2019, 1, 3, 14, 53, 38, 596477).isoformat()
-            with conn:  # add self. and delete above variables
-                curr.execute(
-                    "INSERT INTO transactions VALUES(:idHotfix,:receiptID,:empID,:prodID,:quantity,:discount,:time)",
-                    {
-                        "idHotfix": idHotfix,
-                        "receiptID": receiptID,
-                        "empID": empID,
-                        "prodID": prodID,
-                        "quantity": quantity,
-                        "discount": discount,
-                        "time": time,
-                    },
-                )
-
-        if 0:
-            with conn:
-                curr.execute("SELECT * FROM transactions")
-                print(curr.fetchall())
-        if 0:
-            pass
-        if 0:
-            __pili__ = 35
-            with conn:
-                curr.execute(
-                    "DELETE FROM users WHERE empID = :__pili__", {"__pili__": __pili__}
-                )
-
-
+# generates mock data
 def mock_data():
 
     def products_mock():
@@ -1044,6 +781,7 @@ def mock_data():
     transactions_mock(products)
 
 
+# Program starts 
 def entry_loop():
     databases_initialisations()
 
@@ -1053,5 +791,5 @@ def entry_loop():
     if user_obj:
         main_screen(user_obj)
 
-
+# call function to start program
 entry_loop()
