@@ -1,4 +1,4 @@
-```markdown
+```
 # 💰 Profit Tracker Application
 
 A desktop-based profit tracking system built using **Python**, **SQLite**, and **Tkinter**. This application is designed for **administrators** to efficiently manage employees, inventory, and transactions—all from a single, streamlined interface.
