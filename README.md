@@ -71,12 +71,6 @@ python index.py
 
 ---
 
-## 📸 Screenshots (Optional)
-
-*Add UI screenshots here (e.g., login screen, dashboard).*
-
----
-
 ## 📌 Future Improvements
 
 * Role-based access (user/admin views)
